@@ -13,19 +13,12 @@
 	import type { ActionResult } from "@sveltejs/kit";
 
 	const modalStore = getModalStore();
-	function deleteAllCookies() {
-		document.cookie.split(";").forEach((cookie) => {
-			const eqPos = cookie.indexOf("=");
-			const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
-			document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-		});
-	}
+
 	async function logout() {
-		deleteAllCookies();
+		await fetch("/logout", { method: "POST" });
 		pb.authStore.clear();
-		setTimeout(async () => {
-			await goto("/"); // needs this to be on the next JIT cycle so that cookies clear properly
-		}, 500);
+		currentUser.set(undefined);
+		await goto("/", { invalidateAll: true });
 	}
 
 	export let data: PageData;
@@ -185,7 +178,7 @@
 				<button type="submit" class="btn variant-filled-error">Delete My Account</button>
 			</form>
 			<br />
-			<a href="/" on:click={logout} class="btn variant-outline-primary">Logout</a>
+			<button type="button" on:click={logout} class="btn variant-outline-primary">Logout</button>
 		</section>
 		<section>
 			<form
