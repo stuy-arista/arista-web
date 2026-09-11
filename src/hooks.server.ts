@@ -1,10 +1,14 @@
 import type { RecievedUser } from "$lib/db_types";
 import { isOnCommittee } from "$lib/isOnCommittee";
-import { pb } from "$lib/pocketbase";
+import { env } from "$env/dynamic/public";
 import { redirect, type Handle } from "@sveltejs/kit";
-import type { AuthModel } from "pocketbase";
+import PocketBase from "pocketbase";
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// Auth state belongs to a single request. Reusing the browser-side PocketBase
+	// singleton here lets concurrent requests overwrite each other's auth store.
+	const pb = new PocketBase(env.PUBLIC_POCKETBASE_URL || "http://127.0.0.1:8090");
+
 	// before
 	pb.authStore.loadFromCookie(event.request.headers.get("cookie") || "");
 	if (pb.authStore.isValid) {
