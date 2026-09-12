@@ -33,11 +33,15 @@ export const load = async ({ locals, request }) => {
 	if (!locals?.user?.id) {
 		error(401, "User not logged in.");
 	}
+	const currentUser = locals.user;
+	const requestFilter = currentUser.is_tutee
+		? `isClaimed=false && tutee="${currentUser.id}"`
+		: "isClaimed=false";
 
 	const requests = structuredClone(
 		(await locals.pb
 			.collection("tutoringRequests")
-			.getFullList({ sort: "-created", filter: "isClaimed=false", requestKey: null })) as unknown
+			.getFullList({ sort: "-created", filter: requestFilter, requestKey: null })) as unknown
 	) as RecievedTutoringRequest[];
 
 	const sessions = structuredClone(
@@ -81,9 +85,9 @@ export const actions: Actions = {
 			await locals.pb
 				.collection("tutoringRequests")
 				.create({ ...requestTutoringForm.data, tutee: locals.user.id });
-		} catch (error: unknown) {
-			console.error(error);
-			return handleError(error, requestTutoringForm);
+		} catch (caught: unknown) {
+			console.error(caught);
+			return handleError(caught, requestTutoringForm);
 		}
 
 		return { requestTutoringForm };
@@ -117,8 +121,9 @@ export const actions: Actions = {
 			}
 
 			await locals.pb.collection("tutoringRequests").delete(tutoring_request_id);
-		} catch (error: unknown) {
-			console.error(error);
+		} catch (caught: unknown) {
+			console.error(caught);
+			throw caught;
 		}
 	},
 	claim_tutoring_request: async ({ locals, request, params, url }) => {
@@ -148,9 +153,9 @@ export const actions: Actions = {
 				tutoringRequest = structuredClone(
 					(await locals.pb.collection("tutoringRequests").getOne(tutoring_request_id)) as unknown
 				) as RecievedTutoringRequest;
-			} catch (error: unknown) {
-				console.error(error);
-				return;
+			} catch (caught: unknown) {
+				console.error(caught);
+				throw caught;
 			}
 
 			if (tutoringRequest.isClaimed) {
@@ -167,11 +172,11 @@ export const actions: Actions = {
 							{ requestKey: null }
 						)) as unknown
 				) as RecievedTutoringSession;
-			} catch (error: unknown) {
-				const status = (error as { status?: number })?.status;
+			} catch (caught: unknown) {
+				const status = (caught as { status?: number })?.status;
 				if (status !== 404) {
-					console.error(error);
-					return;
+					console.error(caught);
+					throw caught;
 				}
 			}
 
@@ -190,8 +195,9 @@ export const actions: Actions = {
 
 				// update the tutoring request
 				await locals.pb.collection("tutoringRequests").update(tutoring_request_id, { isClaimed: true });
-			} catch (error: unknown) {
-				console.error(error);
+			} catch (caught: unknown) {
+				console.error(caught);
+				throw caught;
 			}
 		} finally {
 			claimLocks.delete(tutoring_request_id);
@@ -234,8 +240,9 @@ export const actions: Actions = {
 					await locals.pb.collection("tutoringRequests").delete(tutoringSession.tutoringRequest);
 				}
 			}
-		} catch (error: unknown) {
-			console.error(error);
+		} catch (caught: unknown) {
+			console.error(caught);
+			throw caught;
 		}
 	},
 	finish_tutoring_session: async ({ locals, request, params, url }) => {
@@ -266,6 +273,9 @@ export const actions: Actions = {
 			const tutoringSession = structuredClone(
 				(await locals.pb.collection("tutoringSessions").getOne(tutoring_session_id)) as unknown
 			) as RecievedTutoringSession;
+			if (String(tutoringSession.tutee) !== String(locals.user.id)) {
+				error(401, "Only the tutee in this session can mark it complete.");
+			}
 
 			const durationInHours = Number(finishTutoringForm.data.durationInHours);
 			if (Number.isNaN(durationInHours)) {
@@ -277,8 +287,9 @@ export const actions: Actions = {
 			}
 
 			await locals.pb.collection("tutoringSessions").update(tutoring_session_id, { isComplete: true, dateCompleted: new Date().toISOString(), durationInHours: finishTutoringForm.data.durationInHours });
-		} catch (error: unknown) {
-			console.error(error);
+		} catch (caught: unknown) {
+			console.error(caught);
+			throw caught;
 		}
 		return { finishTutoringForm };
 	}
