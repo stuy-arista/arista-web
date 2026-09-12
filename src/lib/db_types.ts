@@ -122,7 +122,7 @@ export type ExpandedCredit = {
 
 export type ExpandedEvent = {
 	expand?: {
-		signed_up: RecievedUser[];
+		signed_up: Array<RecievedUser | RecievedPublicUserData>;
 	};
 } & RecievedEvent;
 

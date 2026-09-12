@@ -5,7 +5,6 @@ import { ApplicationSchema, type RecievedApplication, type RecievedEvent } from 
 import handleError from "$lib/handleError";
 import { zod } from 'sveltekit-superforms/adapters';
 import type Client from "pocketbase";
-import { pb } from "$lib/pocketbase";
 import type { z } from "zod";
 
 let InProgressApplicationSchema = ApplicationSchema.partial();
@@ -87,7 +86,7 @@ export const actions: Actions = {
         let new_application = await createOrUpdateApplication(locals.pb, locals.user.id, formData);
 
         // now mark it as submitted
-        await pb.collection("applications").update(new_application.id, {
+        await locals.pb.collection("applications").update(new_application.id, {
             submitted: true,
             submitted_time: new Date().toISOString() // uploads UTC time, DB reads UTC time, marked as UTC time, all good
         }, {}) as unknown as RecievedApplication;

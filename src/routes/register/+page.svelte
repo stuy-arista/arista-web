@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { applyAction, enhance } from "$app/forms";
-	import { pb } from "$lib/pocketbase";
 	import { superForm } from "sveltekit-superforms";
 	import type { PageData } from "./$types";
 	import ErrorComponent from "$lib/components/ErrorComponent.svelte";
@@ -33,16 +31,7 @@
 
 	<ErrorComponent errors={$errors} />
 
-	<form
-		method="POST"
-		use:enhance={() => {
-			return async ({ result }) => {
-				pb.authStore.loadFromCookie(document.cookie);
-				await applyAction(result);
-			};
-		}}
-		class="card p-4 w-full text-token space-y-4"
-	>
+	<form method="POST" class="card p-4 w-full text-token space-y-4">
 		<InputField form={formObj} field="name" label="Enter your name:" placeholder="John Doe" />
 
 		<!-- <label for="is_tutee">

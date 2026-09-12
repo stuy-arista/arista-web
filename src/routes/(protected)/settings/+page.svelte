@@ -13,12 +13,21 @@
 	import type { ActionResult } from "@sveltejs/kit";
 
 	const modalStore = getModalStore();
+	let isLoggingOut = false;
 
 	async function logout() {
-		await fetch("/logout", { method: "POST" });
-		pb.authStore.clear();
-		currentUser.set(undefined);
-		await goto("/", { invalidateAll: true });
+		if (isLoggingOut) return;
+		isLoggingOut = true;
+
+		try {
+			await fetch("/logout", { method: "POST" });
+		} finally {
+			// Clearing the browser store also removes the readable pb_auth cookie
+			// if the network request fails before the server can clear it.
+			pb.authStore.clear();
+			currentUser.set(undefined);
+			await goto("/", { invalidateAll: true });
+		}
 	}
 
 	export let data: PageData;

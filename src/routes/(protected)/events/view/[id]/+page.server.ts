@@ -1,8 +1,7 @@
 import { error, redirect } from "@sveltejs/kit";
-import { EventSchema, type ExpandedEvent, type RecievedCredit, type RecievedEvent, type RecievedUser } from "$lib/db_types.js";
+import { EventSchema, type ExpandedEvent, type RecievedCredit, type RecievedEvent, type RecievedUser, type RecievedPublicUserData } from "$lib/db_types.js";
 import type { PageServerLoad } from "./$types";
 import { isOnCommittee } from "$lib/isOnCommittee";
-import mergeUsersWithEmails from "$lib/mergeUsersWithEmails";
 import { fail, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import handleError, { handleGenericError } from "$lib/handleError";
@@ -11,9 +10,15 @@ import handleError, { handleGenericError } from "$lib/handleError";
 export const load = (async ({ params, locals }) => {
 	const event_id = params.id;
 
-	const event = await locals.pb.collection("events").getOne(event_id, { requestKey: null, expand: "signed_up" });
-	if (event?.expand?.signed_up) {
-		event.expand.signed_up = await mergeUsersWithEmails(event.expand.signed_up, locals.pb);
+	const event = await locals.pb.collection("events").getOne(event_id, { requestKey: null });
+	if (isOnCommittee(locals.user as RecievedUser, "events") && event.signed_up.length > 0) {
+		const filter = event.signed_up.map((id: string) => `id="${id}"`).join(" || ");
+		const signedUpUsers = await locals.pb.collection("publicUsers").getFullList({
+			filter,
+			fields: "id,name,email",
+			requestKey: null
+		}) as unknown as RecievedPublicUserData[];
+		event.expand = { signed_up: signedUpUsers };
 	}
 
 	const serialized_event = structuredClone(event as unknown) as ExpandedEvent;
