@@ -22,7 +22,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.pb = pb;
 	event.locals.user = structuredClone(pb.authStore.model);
 
-	if (event.url.pathname.startsWith("/events") || event.url.pathname.startsWith("/settings") || event.url.pathname.startsWith("/tutoring") || event.url.pathname.startsWith("/apply")) {
+	if (event.url.pathname.startsWith("/events") || event.url.pathname.startsWith("/settings") || event.url.pathname.startsWith("/tutoring") || event.url.pathname.startsWith("/apply") || event.url.pathname.startsWith("/leaderboard")) {
 		if (!event.locals.user) { // if not logged in, redirect
 			// Redirection inspired by https://www.youtube.com/watch?v=ieECVME5ZLU
 			const fromUrl = event.url.pathname + event.url.search;
