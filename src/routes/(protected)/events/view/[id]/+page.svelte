@@ -15,6 +15,7 @@
 
 	const modalStore = getModalStore();
 	export let data: PageData;
+	let eventsCommitteeView: "credit" | "roster" = "credit";
 
 	async function giveCredits(event: Event, user_id: string) {
 		const formEl = event.target as HTMLFormElement;
@@ -128,34 +129,84 @@
 						barring any commutes or latenesses.
 					</p>
 				</hgroup>
-				{#if data.event.expand}
-					{#each data.event.expand.signed_up as signed_up_user}
-						<div class="card p-4">
-							<p><b>{signed_up_user.name}</b></p>
-							<p>{signed_up_user.email}</p>
-							{#if data.credited_user_ids.includes(signed_up_user.id)}
-								<p>This user has already been credited.</p>
-							{:else}
-								<form
-									class="flex items-end"
-									on:submit|preventDefault={(e) => giveCredits(e, signed_up_user.id)}
-									method="POST"
-									action="?/giveCreditToUser"
-								>
-									<label for="credits">
-										Enter the # of credits:
-										<input
-											class="input p-2"
-											name="credits"
-											type="numeric"
-											value={calculateEventCredits(data.event)}
-										/>
-									</label>
-									<button type="submit" class="btn variant-outline-tertiary h-fit">Credit</button>
-								</form>
-							{/if}
+				<div class="inline-flex w-full sm:w-auto rounded-container-token bg-surface-200-700-token p-1" role="tablist" aria-label="Events committee tools">
+					<button
+						class="btn btn-sm {eventsCommitteeView === 'credit' ? 'variant-filled-secondary' : 'variant-ghost'} flex-1 sm:flex-none"
+						type="button"
+						role="tab"
+						aria-selected={eventsCommitteeView === "credit"}
+						on:click={() => (eventsCommitteeView = "credit")}
+					>
+						Credit volunteers
+					</button>
+					<button
+						class="btn btn-sm {eventsCommitteeView === 'roster' ? 'variant-filled-secondary' : 'variant-ghost'} flex-1 sm:flex-none"
+						type="button"
+						role="tab"
+						aria-selected={eventsCommitteeView === "roster"}
+						on:click={() => (eventsCommitteeView = "roster")}
+					>
+						Volunteer roster ({data.event.signed_up.length})
+					</button>
+				</div>
+
+				{#if eventsCommitteeView === "credit"}
+					{#if data.event.expand}
+						<div class="space-y-3" role="tabpanel">
+							{#each data.event.expand.signed_up as signed_up_user}
+								<div class="card p-4">
+									<p><b>{signed_up_user.name}</b></p>
+									<p>{signed_up_user.email}</p>
+									{#if data.credited_user_ids.includes(signed_up_user.id)}
+										<p>This user has already been credited.</p>
+									{:else}
+										<form
+											class="flex items-end"
+											on:submit|preventDefault={(e) => giveCredits(e, signed_up_user.id)}
+											method="POST"
+											action="?/giveCreditToUser"
+										>
+											<label for="credits">
+												Enter the # of credits:
+												<input
+													class="input p-2"
+													name="credits"
+													type="numeric"
+													value={calculateEventCredits(data.event)}
+												/>
+											</label>
+											<button type="submit" class="btn variant-outline-tertiary h-fit">Credit</button>
+										</form>
+									{/if}
+								</div>
+							{/each}
 						</div>
-					{/each}
+					{:else}
+						<p class="text-surface-500-token">No volunteers have signed up yet.</p>
+					{/if}
+				{:else if data.event.expand}
+					<div class="overflow-x-auto rounded-container-token border border-surface-300-600-token" role="tabpanel">
+						<table class="w-full min-w-[32rem] text-left">
+							<thead class="bg-surface-200-700-token text-xs uppercase tracking-wide text-surface-500-token">
+								<tr>
+									<th scope="col" class="w-14 px-4 py-3 font-semibold">#</th>
+									<th scope="col" class="px-4 py-3 font-semibold">Name</th>
+									<th scope="col" class="px-4 py-3 font-semibold">Email</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-surface-300-600-token">
+								{#each data.event.expand.signed_up as signed_up_user, index}
+									<tr class="transition-colors hover:bg-surface-100-800-token">
+										<td class="px-4 py-3 text-surface-500-token">{index + 1}</td>
+										<td class="px-4 py-3 font-semibold">{signed_up_user.name}</td>
+										<td class="px-4 py-3"><a class="anchor" href={`mailto:${signed_up_user.email}`}>{signed_up_user.email}</a></td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<p class="text-surface-500-token">No volunteers have signed up yet.</p>
 				{/if}
 				<form class="mt-3" method="POST" action="?/mark_event_as_completed" use:enhance>
 					<button type="submit" class="btn variant-filled-secondary">
