@@ -16,6 +16,33 @@
 	const modalStore = getModalStore();
 	export let data: PageData;
 	let eventsCommitteeView: "credit" | "roster" = "credit";
+	let rosterCopyMessage = "";
+	let rosterCopyTimer: ReturnType<typeof setTimeout> | undefined;
+
+	async function copyRoster(format: "names" | "emails" | "emails-and-names") {
+		const volunteers = data.event.expand?.signed_up ?? [];
+		if (volunteers.length === 0) return;
+
+		const text =
+			format === "names"
+				? volunteers.map((volunteer) => volunteer.name).join("\n")
+				: format === "emails"
+					? volunteers.map((volunteer) => volunteer.email).join("\n")
+					: ["Email\tName", ...volunteers.map((volunteer) => `${volunteer.email}\t${volunteer.name}`)].join("\n");
+
+		try {
+			await navigator.clipboard.writeText(text);
+			rosterCopyMessage =
+				format === "emails-and-names"
+					? "Copied two spreadsheet columns."
+					: `Copied ${format}.`;
+		} catch {
+			rosterCopyMessage = "Could not copy. Please try again.";
+		}
+
+		if (rosterCopyTimer) clearTimeout(rosterCopyTimer);
+		rosterCopyTimer = setTimeout(() => (rosterCopyMessage = ""), 2600);
+	}
 
 	async function giveCredits(event: Event, user_id: string) {
 		const formEl = event.target as HTMLFormElement;
@@ -185,6 +212,20 @@
 						<p class="text-surface-500-token">No volunteers have signed up yet.</p>
 					{/if}
 				{:else if data.event.expand}
+					<div class="flex flex-col gap-3 rounded-container-token border border-surface-300-600-token bg-surface-100-800-token p-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<p class="font-semibold">Copy this roster</p>
+							<p class="text-sm text-surface-500-token">Email + name pastes as two columns in Google Sheets or Excel.</p>
+						</div>
+						<div class="flex flex-wrap gap-2">
+							<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("names")}>Copy names</button>
+							<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("emails")}>Copy emails</button>
+							<button class="btn btn-sm variant-filled-secondary" type="button" on:click={() => copyRoster("emails-and-names")}>Copy emails + names</button>
+						</div>
+						{#if rosterCopyMessage}
+							<p class="text-sm text-success-500" aria-live="polite">{rosterCopyMessage}</p>
+						{/if}
+					</div>
 					<div class="overflow-x-auto rounded-container-token border border-surface-300-600-token" role="tabpanel">
 						<table class="w-full min-w-[32rem] text-left">
 							<thead class="bg-surface-200-700-token text-xs uppercase tracking-wide text-surface-500-token">
