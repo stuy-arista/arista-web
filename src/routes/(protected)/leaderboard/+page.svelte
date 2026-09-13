@@ -30,7 +30,6 @@
             <h1 class="h1 text-primary-500">
                 {creditType === 'tutoring' ? 'Top Tutors' : 'Top Volunteers'}
             </h1>
-            <p class="text-sm opacity-50 uppercase tracking-widest">Since Feb 2026</p>
         </div>
 
         <div class="radio-group p-1 bg-surface-200-700-token inline-flex rounded-container-token">
