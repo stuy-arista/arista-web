@@ -28,7 +28,7 @@
 				? volunteers.map((volunteer) => volunteer.name).join("\n")
 				: format === "emails"
 					? volunteers.map((volunteer) => volunteer.email).join("\n")
-					: ["Email\tName", ...volunteers.map((volunteer) => `${volunteer.email}\t${volunteer.name}`)].join("\n");
+					: volunteers.map((volunteer) => `${volunteer.email}\t${volunteer.name}`).join("\n");
 
 		try {
 			await navigator.clipboard.writeText(text);
