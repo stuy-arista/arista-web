@@ -212,18 +212,12 @@
 						<p class="text-surface-500-token">No volunteers have signed up yet.</p>
 					{/if}
 				{:else if data.event.expand}
-					<div class="flex flex-col gap-3 rounded-container-token border border-surface-300-600-token bg-surface-100-800-token p-3 sm:flex-row sm:items-center sm:justify-between">
-						<div>
-							<p class="font-semibold">Copy this roster</p>
-							<p class="text-sm text-surface-500-token">Email + name pastes as two columns in Google Sheets or Excel.</p>
-						</div>
-						<div class="flex flex-wrap gap-2">
-							<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("names")}>Copy names</button>
-							<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("emails")}>Copy emails</button>
-							<button class="btn btn-sm variant-filled-secondary" type="button" on:click={() => copyRoster("emails-and-names")}>Copy emails + names</button>
-						</div>
+					<div class="flex flex-wrap gap-2">
+						<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("names")}>Copy names</button>
+						<button class="btn btn-sm variant-outline-secondary" type="button" on:click={() => copyRoster("emails")}>Copy emails</button>
+						<button class="btn btn-sm variant-filled-secondary" type="button" on:click={() => copyRoster("emails-and-names")}>Copy emails + names</button>
 						{#if rosterCopyMessage}
-							<p class="text-sm text-success-500" aria-live="polite">{rosterCopyMessage}</p>
+							<p class="w-full text-sm text-success-500" aria-live="polite">{rosterCopyMessage}</p>
 						{/if}
 					</div>
 					<div class="overflow-x-auto rounded-container-token border border-surface-300-600-token" role="tabpanel">
