@@ -10,7 +10,7 @@ const config = {
 
 	kit: {
 		// Vercel's adapter produces the serverless build output used by this project.
-		adapter: adapter({ runtime: 'nodejs20.x' })
+		adapter: adapter({ runtime: 'nodejs24.x' })
 	}
 };
 export default config;
