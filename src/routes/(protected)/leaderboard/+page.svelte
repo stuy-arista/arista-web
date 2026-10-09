@@ -67,12 +67,42 @@
 			.map((user) => ({ name: displayName(user), value: creditTotalsByUser.get(user.id) ?? 0 }))
 			.filter((entry) => entry.value > 0)
 			.sort((a, b) => b.value - a.value)
+			.map((entry, _, entries) => {
+				const rank = entries.findIndex((other) => other.value === entry.value) + 1;
+				return { ...entry, rank, label: `${rank}` };
+			})
 			.slice(0, 20);
 	});
 
 	const units = $derived(creditType === "tutoring" ? "tutoring credits" : "event credits");
-	const podiumEntries = $derived(leaderboard.slice(0, 3));
-	const remainingEntries = $derived(leaderboard.slice(3));
+	// Tied people share one podium step. Bigger ties fall back to the plain list.
+	const podiumOrder = [2, 1, 3];
+	const podiumGroups = $derived.by(() => {
+		const groups = new Map<number, typeof leaderboard>();
+		for (const entry of leaderboard) {
+			if (entry.rank > 3) continue;
+			groups.set(entry.rank, [...(groups.get(entry.rank) ?? []), entry]);
+		}
+		return [...groups.entries()]
+			.map(([rank, entries]) => ({ rank, entries }))
+			.sort((a, b) => podiumOrder.indexOf(a.rank) - podiumOrder.indexOf(b.rank));
+	});
+	const showPodium = $derived(
+		podiumGroups.length > 0 && podiumGroups.every((group) => group.entries.length <= 2)
+	);
+	// Only places that exist get a column, so the podium stays centered as a group.
+	const podiumColumns = $derived.by(() => {
+		const hasShared = podiumGroups.some((group) => group.entries.length > 1);
+		return podiumGroups
+			.map((group) => {
+				const weight = group.rank === 1 && hasShared ? 1.5 : 1;
+				return `${Math.max(group.entries.length, weight)}fr`;
+			})
+			.join(" ");
+	});
+	const remainingEntries = $derived(
+		showPodium ? leaderboard.filter((e) => e.rank > 3) : leaderboard
+	);
 </script>
 
 <svelte:head><title>Leaderboard | ARISTA</title></svelte:head>
@@ -118,27 +148,34 @@
 				<p>Rankings show up as soon as the first credits are recorded.</p>
 			</div>
 		{:else}
-			<ol class="podium" aria-label="Top three">
-				{#each podiumEntries as entry, index}
-					<li class="podium__place podium__place--{index + 1}" style:--order={index}>
-						<div class="podium__person">
-							<span class="podium__avatar" aria-hidden="true">{initials({ name: entry.name })}</span
-							>
-							<strong>{entry.name}</strong>
-							<span class="podium__value"><b>{entry.value}</b> {units}</span>
-						</div>
-						<div class="podium__block" aria-hidden="true">
-							<span>{index + 1}</span>
-						</div>
-						<span class="sr-only">Rank {index + 1}</span>
-					</li>
-				{/each}
-			</ol>
+			{#if showPodium}
+				<ol class="podium" aria-label="Top three" style:grid-template-columns={podiumColumns}>
+					{#each podiumGroups as group, index (group.rank)}
+						<li class="podium__place podium__place--{group.rank}" style:--order={index}>
+							<div class="podium__people">
+								{#each group.entries as entry (entry.name)}
+									<div class="podium__person">
+										<span class="podium__avatar" aria-hidden="true"
+											>{initials({ name: entry.name })}</span
+										>
+										<strong>{entry.name}</strong>
+										<span class="podium__value"><b>{entry.value}</b> {units}</span>
+									</div>
+								{/each}
+							</div>
+							<div class="podium__block" aria-hidden="true">
+								<span>{group.entries[0].label}</span>
+							</div>
+							<span class="sr-only">Rank {group.entries[0].label}</span>
+						</li>
+					{/each}
+				</ol>
+			{/if}
 			{#if remainingEntries.length}
-				<ol class="rankings" start="4">
-					{#each remainingEntries as entry, index}
+				<ol class="rankings">
+					{#each remainingEntries as entry}
 						<li>
-							<span class="rankings__rank">{index + 4}</span>
+							<span class="rankings__rank">{entry.label}</span>
 							<span class="rankings__name">{entry.name}</span>
 							<span class="rankings__value"><b>{entry.value}</b> <small>{units}</small></span>
 						</li>
@@ -205,21 +242,20 @@
 		list-style: none;
 	}
 	.podium__place {
+		grid-row: 1;
 		display: grid;
 		min-width: 0;
 		animation: podium-in 520ms var(--ease-out) both;
 		animation-delay: calc(var(--order) * 90ms);
 	}
-	.podium__place--1 {
-		order: 2;
-	}
-	.podium__place--2 {
-		order: 1;
-	}
-	.podium__place--3 {
-		order: 3;
+	.podium__people {
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
 	}
 	.podium__person {
+		flex: 1 1 0;
+		min-width: 0;
 		display: grid;
 		justify-items: center;
 		gap: 0.3rem;
@@ -261,7 +297,7 @@
 		font-weight: 600;
 		line-height: 1.2;
 		text-overflow: ellipsis;
-		white-space: nowrap;
+		white-space: normal;
 	}
 	.podium__value {
 		color: var(--muted);

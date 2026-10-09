@@ -43,10 +43,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 			requestKey: null
 		})) as unknown as RecievedPublicUserData[];
 
-		const leaderboard = leaderboardData.map((entry, index) => {
+		const leaderboard = leaderboardData.map((entry) => {
 			const user = users.find((u) => u.id === entry.userId);
 			return {
-				rank: index + 1,
+				rank: leaderboardData.findIndex((e) => e.totalHours === entry.totalHours) + 1,
 				name: user?.name || "Unknown",
 				hours: entry.totalHours
 			};
