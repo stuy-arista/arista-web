@@ -171,8 +171,8 @@
 	}
 	.new-meeting {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-		gap: 0.75rem;
+		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+		gap: 0.75rem 1rem;
 		align-items: end;
 		margin-top: 0.75rem;
 	}
@@ -182,34 +182,61 @@
 	}
 	.new-meeting__mode {
 		display: grid;
-		gap: 0.5rem;
+		grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+		gap: 0.6rem;
 		grid-column: 1 / -1;
 		margin: 0;
 		padding: 0;
 		border: 0;
 	}
+	.new-meeting__mode legend {
+		margin-bottom: 0.35rem;
+		padding: 0;
+	}
 	.choice {
-		display: flex !important;
-		gap: 0.6rem;
+		display: grid !important;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0.65rem;
 		align-items: start;
-		padding: 0.6rem 0.75rem;
+		padding: 0.8rem 0.9rem;
 		border: 1px solid var(--line);
-		border-radius: 10px;
+		border-radius: 12px;
+		background: var(--surface);
 		cursor: pointer;
+		transition:
+			border-color var(--dur-2, 0.15s) ease,
+			background-color var(--dur-2, 0.15s) ease;
+	}
+	.choice:hover {
+		border-color: var(--line-strong, var(--line));
 	}
 	.choice:has(input:checked) {
 		border-color: var(--seal, var(--ink));
 		background: var(--wash);
 	}
-	.choice input {
-		width: auto;
-		margin-top: 0.2rem;
+	.choice:has(input:focus-visible) {
+		outline: 2px solid var(--seal, var(--ink));
+		outline-offset: 2px;
+	}
+	.choice input[type="radio"] {
+		width: 1.1rem;
+		height: 1.1rem;
+		min-height: 0;
+		margin: 0.15rem 0 0;
+		padding: 0;
+		accent-color: var(--seal, var(--ink));
 	}
 	.choice strong {
 		display: block;
+		font-size: var(--text-sm);
 	}
 	.choice span {
+		color: var(--muted);
 		font-size: var(--text-sm);
+		line-height: 1.45;
+	}
+	.choice span strong {
+		color: var(--ink);
 	}
 	.new-meeting__name {
 		grid-column: 1 / -1;
@@ -219,7 +246,7 @@
 		grid-column: 1 / -1;
 		justify-self: start;
 	}
-	.new-meeting input {
+	.new-meeting input:not([type="radio"]) {
 		min-width: 0;
 		width: 100%;
 	}
