@@ -47,6 +47,10 @@
 <svelte:head><title>Check in: {meeting.name} | ARISTA</title></svelte:head>
 
 <main class="page self">
+	<a class="back" href="/">
+		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+		Home
+	</a>
 	<header>
 		<p class="self__meeting">{meeting.name}</p>
 		<h1>Check in</h1>
@@ -55,7 +59,8 @@
 	{#if meeting.checkedInAt}
 		<section class="panel self__card self__done" aria-live="polite">
 			<h2>You're checked in, {data.name.split(" ")[0]}.</h2>
-			<p class="muted">Checked in at {time(meeting.checkedInAt)}. You can close this page.</p>
+			<p class="muted">Checked in at {time(meeting.checkedInAt)}.</p>
+			<a class="btn btn-primary" href="/">Back to home</a>
 		</section>
 	{:else if !meeting.member}
 		<section class="panel self__card">
@@ -63,6 +68,7 @@
 			<p class="muted">
 				You're signed in with a tutee account. If you're a member, sign in with your member account.
 			</p>
+			<a class="btn" href="/">Back to home</a>
 		</section>
 	{:else if !meeting.open}
 		<section class="panel self__card">
@@ -72,6 +78,7 @@
 					? `It opens ${time(meeting.opensAt)}. Scan the code again then.`
 					: "If you were at the meeting, talk to an officer."}
 			</p>
+			<a class="btn" href="/">Back to home</a>
 		</section>
 	{:else}
 		<section class="panel self__card">
@@ -88,6 +95,39 @@
 </main>
 
 <style>
+	.back {
+		display: inline-flex;
+		align-items: center;
+		justify-self: start;
+		gap: 0.25rem;
+		min-height: 2.75rem;
+		margin-left: -0.4rem;
+		padding: 0 0.6rem 0 0.4rem;
+		border-radius: var(--radius-pill);
+		color: var(--muted);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.back:hover {
+		background: var(--wash);
+		color: var(--ink);
+	}
+	.back svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentcolor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
+	}
+	.self__card .btn {
+		justify-self: start;
+	}
+	.self__done .btn {
+		justify-self: center;
+	}
 	.self {
 		display: grid;
 		gap: 1rem;
