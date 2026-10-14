@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from "$app/state";
 	import { confirmDialog } from "$lib/skeleton-compat";
 	import { enhance } from "$app/forms";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
@@ -7,6 +8,14 @@
 
 	let { data }: { data: PageData } = $props();
 	let showAbsent = $state(false);
+	let editing = $state(false);
+	const editResult = $derived((page.form ?? {}) as { editError?: string });
+
+	// "2026-10-15T15:30" in the viewer's time zone, for datetime-local inputs.
+	function local(value: string) {
+		const date = new Date(value);
+		return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+	}
 	let copied = $state(false);
 
 	function time(value: string) {
@@ -39,10 +48,71 @@
 				data.meeting.closesAt
 			)}
 		</p>
+		{#if data.meeting.instructions}
+			<p class="meeting__message">Check-in message: {data.meeting.instructions}</p>
+		{/if}
 		<p class="meeting__stats">
 			<strong>{data.checkIns.length}</strong> checked in ·
 			<strong>{data.absent.length}</strong> members didn't
 		</p>
+		<details class="edit" bind:open={editing}>
+			<summary>Edit meeting</summary>
+			<form
+				method="POST"
+				action="?/update_meeting"
+				class="edit__form"
+				use:enhance={() =>
+					async ({ result, update }) => {
+						await update({ reset: false });
+						if (result.type === "success") editing = false;
+					}}
+			>
+				<input type="hidden" name="offset" value={new Date().getTimezoneOffset()} />
+				<label class="edit__wide">
+					<span class="field-label">Name</span>
+					<input name="name" value={data.meeting.name} maxlength="120" required />
+				</label>
+				<label class="edit__wide">
+					<span class="field-label">Message at check-in <span class="muted">(optional)</span></span>
+					<input
+						name="instructions"
+						value={data.meeting.instructions}
+						maxlength="300"
+						placeholder="Upload a picture with your ARISTA shirt"
+					/>
+				</label>
+				<label>
+					<span class="field-label">Check-in opens</span>
+					<input
+						type="datetime-local"
+						name="opensAt"
+						value={local(data.meeting.opensAt)}
+						required
+					/>
+				</label>
+				<label>
+					<span class="field-label">Check-in closes</span>
+					<input
+						type="datetime-local"
+						name="closesAt"
+						value={local(data.meeting.closesAt)}
+						required
+					/>
+				</label>
+				<p class="muted edit__wide">
+					{data.meeting.mode === "self"
+						? "Members check in on their own phones. The QR code stays the same after edits."
+						: "Members check in at the check-in devices."}
+				</p>
+				<div class="edit__wide edit__actions">
+					<button class="btn btn-primary" type="submit">Save changes</button>
+					<button class="btn btn-ghost" type="button" onclick={() => (editing = false)}
+						>Cancel</button
+					>
+				</div>
+				{#if editResult.editError}<p class="field-error edit__wide">{editResult.editError}</p>{/if}
+			</form>
+		</details>
 	</section>
 
 	{#if data.link}
@@ -215,6 +285,45 @@
 		.share__qr {
 			max-width: 14rem;
 		}
+	}
+	.meeting__message {
+		padding: 0.5rem 0.75rem;
+		border-left: 3px solid var(--flame);
+		border-radius: 0 8px 8px 0;
+		background: var(--surface-sunken);
+		font-size: var(--text-sm);
+	}
+	.edit {
+		margin-top: 1rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--line);
+	}
+	.edit summary {
+		width: fit-content;
+		font-size: var(--text-sm);
+		font-weight: 650;
+		cursor: pointer;
+	}
+	.edit__form {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+		gap: 0.75rem 1rem;
+		margin-top: 0.75rem;
+	}
+	.edit__form label {
+		display: grid;
+		gap: 0.3rem;
+	}
+	.edit__form input {
+		width: 100%;
+		min-width: 0;
+	}
+	.edit__wide {
+		grid-column: 1 / -1;
+	}
+	.edit__actions {
+		display: flex;
+		gap: 0.5rem;
 	}
 	.meeting__title {
 		margin: 0;

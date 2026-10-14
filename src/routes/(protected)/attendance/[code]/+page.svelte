@@ -83,6 +83,7 @@
 	{:else}
 		<section class="panel self__card">
 			<p class="self__who">Checking in as <strong>{data.name}</strong></p>
+			{#if meeting.instructions}<p class="instructions">{meeting.instructions}</p>{/if}
 			<PhotoCapture bind:photo bind:message busy={sending}>
 				{#snippet submit()}
 					<button class="btn btn-primary" type="button" onclick={send} disabled={sending}
@@ -153,6 +154,14 @@
 	.self__card h2,
 	.self__card p {
 		margin: 0;
+	}
+	.instructions {
+		padding: 0.6rem 0.8rem;
+		border-left: 3px solid var(--flame);
+		border-radius: 0 10px 10px 0;
+		background: var(--surface-sunken);
+		color: var(--ink);
+		font-weight: 600;
 	}
 	.self__done {
 		text-align: center;

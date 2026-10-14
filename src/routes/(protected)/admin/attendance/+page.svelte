@@ -84,6 +84,14 @@
 						<span><strong>Their own phones</strong> Members scan a QR code and take a selfie.</span>
 					</label>
 				</fieldset>
+				<label class="new-meeting__name">
+					<span class="field-label">Message at check-in <span class="muted">(optional)</span></span>
+					<input
+						name="instructions"
+						maxlength="300"
+						placeholder="Upload a picture with your ARISTA shirt"
+					/>
+				</label>
 				<label>
 					<span class="field-label">Check-in opens</span>
 					<input type="datetime-local" name="opensAt" value={opensDefault} required />

@@ -165,6 +165,7 @@
 		{:else if step === "camera" || step === "sending"}
 			<section class="panel kiosk__card">
 				<p class="kiosk__who">Checking in <strong>{member?.name}</strong></p>
+				{#if meeting?.instructions}<p class="instructions">{meeting.instructions}</p>{/if}
 				<PhotoCapture bind:photo bind:message busy={step === "sending"}>
 					{#snippet submit()}
 						<button
@@ -288,6 +289,14 @@
 	.kiosk__results span {
 		color: var(--muted);
 		font-size: var(--text-sm);
+	}
+	.instructions {
+		padding: 0.6rem 0.8rem;
+		border-left: 3px solid var(--flame);
+		border-radius: 0 10px 10px 0;
+		background: var(--surface-sunken);
+		color: var(--ink);
+		font-weight: 600;
 	}
 	.kiosk__done {
 		text-align: center;

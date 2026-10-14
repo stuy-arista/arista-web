@@ -8,6 +8,8 @@ export type Meeting = {
 	/** "device": check-in on approved accounts' devices. "self": members' own phones via QR link. */
 	mode: "device" | "self";
 	code: string;
+	/** Shown above the camera at check-in, like "Wear your ARISTA shirt". */
+	instructions: string;
 };
 
 export function toMeeting(record: RecordModel): Meeting {
@@ -17,7 +19,8 @@ export function toMeeting(record: RecordModel): Meeting {
 		opensAt: record.opensAt,
 		closesAt: record.closesAt,
 		mode: record.mode === "self" ? "self" : "device",
-		code: record.code ?? ""
+		code: record.code ?? "",
+		instructions: record.instructions ?? ""
 	};
 }
 

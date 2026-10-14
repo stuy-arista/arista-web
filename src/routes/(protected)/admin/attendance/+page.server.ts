@@ -52,12 +52,16 @@ export const actions: Actions = {
 		if (closesAt <= opensAt)
 			return fail(400, { meetingError: "Check-in has to close after it opens." });
 		const mode = form.get("mode") === "self" ? "self" : "device";
+		const instructions = String(form.get("instructions") ?? "")
+			.trim()
+			.slice(0, 300);
 		await locals.pb.collection("meetings").create(
 			{
 				name,
 				opensAt,
 				closesAt,
 				mode,
+				instructions,
 				code: mode === "self" ? newCheckInCode() : "",
 				createdBy: locals.user?.id
 			},

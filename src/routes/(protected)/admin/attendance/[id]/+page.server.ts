@@ -1,7 +1,7 @@
 import { error, fail } from "@sveltejs/kit";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
-import { toMeeting } from "$lib/server/attendance";
+import { localToIso, toMeeting } from "$lib/server/attendance";
 import { brandedQr } from "$lib/server/brandedQr";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -65,6 +65,32 @@ export const load = (async ({ locals, params, url }) => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
+	update_meeting: async ({ locals, params, request }) => {
+		if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can edit meetings.");
+		const form = await request.formData();
+		const name = String(form.get("name") ?? "")
+			.trim()
+			.slice(0, 120);
+		const offset = Number(form.get("offset"));
+		const opensAt = localToIso(String(form.get("opensAt") ?? ""), offset);
+		const closesAt = localToIso(String(form.get("closesAt") ?? ""), offset);
+		const instructions = String(form.get("instructions") ?? "")
+			.trim()
+			.slice(0, 300);
+		if (!name) return fail(400, { editError: "Give the meeting a name." });
+		if (!opensAt || !closesAt)
+			return fail(400, { editError: "Pick when check-in opens and closes." });
+		if (closesAt <= opensAt)
+			return fail(400, { editError: "Check-in has to close after it opens." });
+		try {
+			await locals.pb
+				.collection("meetings")
+				.update(params.id, { name, opensAt, closesAt, instructions }, { requestKey: null });
+		} catch {
+			return fail(400, { editError: "Couldn't save the meeting. Try again." });
+		}
+		return { meetingUpdated: true };
+	},
 	remove_check_in: async ({ locals, request }) => {
 		if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can remove check-ins.");
 		const id = String((await request.formData()).get("id") ?? "");

@@ -3,6 +3,7 @@ import type { Actions, PageServerLoad } from "./$types";
 
 type SelfMeeting = {
 	name: string;
+	instructions: string;
 	opensAt: string;
 	closesAt: string;
 	open: boolean;
