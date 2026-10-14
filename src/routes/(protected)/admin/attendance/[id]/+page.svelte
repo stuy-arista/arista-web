@@ -5,6 +5,7 @@
 
 	let { data }: { data: PageData } = $props();
 	let showAbsent = $state(false);
+	let copied = $state(false);
 
 	function time(value: string) {
 		return new Date(value).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
@@ -41,6 +42,35 @@
 			<strong>{data.absent.length}</strong> members didn't
 		</p>
 	</section>
+
+	{#if data.link}
+		<section class="panel share">
+			<!-- The SVG comes from our own QR generator, not user input. -->
+			<div class="share__qr">{@html data.qr}</div>
+			<div class="share__text">
+				<h2 class="section-title">Check-in link</h2>
+				<p>
+					Show this QR code (or share the link). Members scan it, sign in if they need to, and take
+					a selfie on their own phone. It only works while check-in is open.
+				</p>
+				<p class="share__link"><a class="text-link" href={data.link}>{data.link}</a></p>
+				<div class="share__actions">
+					<button
+						class="btn btn-sm"
+						type="button"
+						onclick={async () => {
+							await navigator.clipboard.writeText(data.link);
+							copied = true;
+							setTimeout(() => (copied = false), 2000);
+						}}>{copied ? "Copied" : "Copy link"}</button
+					>
+					<a class="btn btn-sm" href="/admin/attendance/{data.meeting.id}/qr" target="_blank"
+						>Show QR full screen</a
+					>
+				</div>
+			</div>
+		</section>
+	{/if}
 
 	<section class="panel">
 		<h2 class="section-title">Checked in</h2>
@@ -137,6 +167,40 @@
 		stroke-linecap: round;
 		stroke-linejoin: round;
 		stroke-width: 2;
+	}
+	.share {
+		display: grid;
+		grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+		gap: 1.25rem;
+		align-items: center;
+	}
+	.share__qr :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 8px;
+		background: #fff;
+	}
+	.share__text p {
+		margin: 0.4rem 0 0;
+	}
+	.share__link {
+		overflow-wrap: anywhere;
+		font-size: var(--text-sm);
+	}
+	.share__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+	}
+	@media (max-width: 560px) {
+		.share {
+			grid-template-columns: 1fr;
+		}
+		.share__qr {
+			max-width: 14rem;
+		}
 	}
 	.meeting__title {
 		margin: 0;

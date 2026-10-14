@@ -1,15 +1,17 @@
 import { error, fail } from "@sveltejs/kit";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
-import { localToIso, openNowFilter, toMeeting } from "$lib/server/attendance";
+import { localToIso, newCheckInCode, openNowFilter, toMeeting } from "$lib/server/attendance";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load = (async ({ locals }) => {
 	const admin = isAdmin(locals.user as RecievedUser);
 	const openMeetings = (
-		await locals.pb
-			.collection("meetings")
-			.getFullList({ filter: openNowFilter(), sort: "opensAt", requestKey: null })
+		await locals.pb.collection("meetings").getFullList({
+			filter: `${openNowFilter()} && mode != "self"`,
+			sort: "opensAt",
+			requestKey: null
+		})
 	).map(toMeeting);
 	if (!admin) return { admin, openMeetings, meetings: [] };
 
@@ -49,9 +51,18 @@ export const actions: Actions = {
 			return fail(400, { meetingError: "Pick when check-in opens and closes." });
 		if (closesAt <= opensAt)
 			return fail(400, { meetingError: "Check-in has to close after it opens." });
-		await locals.pb
-			.collection("meetings")
-			.create({ name, opensAt, closesAt, createdBy: locals.user?.id }, { requestKey: null });
+		const mode = form.get("mode") === "self" ? "self" : "device";
+		await locals.pb.collection("meetings").create(
+			{
+				name,
+				opensAt,
+				closesAt,
+				mode,
+				code: mode === "self" ? newCheckInCode() : "",
+				createdBy: locals.user?.id
+			},
+			{ requestKey: null }
+		);
 		return { meetingCreated: true };
 	},
 	close_meeting: async ({ locals, request }) => {

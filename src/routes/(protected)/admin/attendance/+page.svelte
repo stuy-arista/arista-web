@@ -72,6 +72,17 @@
 					<span class="field-label">Name</span>
 					<input name="name" placeholder="General Meeting" maxlength="120" required />
 				</label>
+				<fieldset class="new-meeting__mode">
+					<legend class="field-label">How members check in</legend>
+					<label class="choice">
+						<input type="radio" name="mode" value="device" checked />
+						<span><strong>Check-in devices</strong> Members line up at your approved devices.</span>
+					</label>
+					<label class="choice">
+						<input type="radio" name="mode" value="self" />
+						<span><strong>Their own phones</strong> Members scan a QR code and take a selfie.</span>
+					</label>
+				</fieldset>
 				<label>
 					<span class="field-label">Check-in opens</span>
 					<input type="datetime-local" name="opensAt" value={opensDefault} required />
@@ -98,7 +109,11 @@
 								<a class="text-link meetings__name" href="/admin/attendance/{meeting.id}"
 									>{meeting.name}</a
 								>
-								<p class="muted">{when(meeting.opensAt)} to {when(meeting.closesAt)}</p>
+								<p class="muted">
+									{meeting.mode === "self" ? "Members' own phones, " : ""}{when(meeting.opensAt)} to {when(
+										meeting.closesAt
+									)}
+								</p>
 							</div>
 							<span
 								class="badge"
@@ -164,6 +179,37 @@
 	.new-meeting label {
 		display: grid;
 		gap: 0.3rem;
+	}
+	.new-meeting__mode {
+		display: grid;
+		gap: 0.5rem;
+		grid-column: 1 / -1;
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+	.choice {
+		display: flex !important;
+		gap: 0.6rem;
+		align-items: start;
+		padding: 0.6rem 0.75rem;
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		cursor: pointer;
+	}
+	.choice:has(input:checked) {
+		border-color: var(--seal, var(--ink));
+		background: var(--wash);
+	}
+	.choice input {
+		width: auto;
+		margin-top: 0.2rem;
+	}
+	.choice strong {
+		display: block;
+	}
+	.choice span {
+		font-size: var(--text-sm);
 	}
 	.new-meeting__name {
 		grid-column: 1 / -1;

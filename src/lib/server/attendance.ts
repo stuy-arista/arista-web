@@ -1,14 +1,31 @@
 import type { RecordModel } from "pocketbase";
 
-export type Meeting = { id: string; name: string; opensAt: string; closesAt: string };
+export type Meeting = {
+	id: string;
+	name: string;
+	opensAt: string;
+	closesAt: string;
+	/** "device": check-in on approved accounts' devices. "self": members' own phones via QR link. */
+	mode: "device" | "self";
+	code: string;
+};
 
 export function toMeeting(record: RecordModel): Meeting {
 	return {
 		id: record.id,
 		name: record.name,
 		opensAt: record.opensAt,
-		closesAt: record.closesAt
+		closesAt: record.closesAt,
+		mode: record.mode === "self" ? "self" : "device",
+		code: record.code ?? ""
 	};
+}
+
+/** Hard-to-guess code for a self check-in link. */
+export function newCheckInCode() {
+	const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+	const bytes = crypto.getRandomValues(new Uint8Array(12));
+	return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
 /** PocketBase filter for meetings open right now. */

@@ -40,7 +40,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.url.pathname.startsWith("/settings") ||
 		event.url.pathname.startsWith("/tutoring") ||
 		event.url.pathname.startsWith("/apply") ||
-		event.url.pathname.startsWith("/leaderboard")
+		event.url.pathname.startsWith("/leaderboard") ||
+		event.url.pathname.startsWith("/attendance")
 	) {
 		if (!event.locals.user) {
 			// if not logged in, redirect
@@ -52,6 +53,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 			if (event.url.pathname.startsWith("/apply")) {
 				message =
 					"Sign in to apply. New to ARISTA? Create a tutee account first. Current freshmen, sophomores, and juniors with a 92 overall average or higher are eligible.";
+			}
+			if (event.url.pathname.startsWith("/attendance")) {
+				message = "Sign in to check in to the meeting.";
 			}
 			if (event.url.pathname.startsWith("/tutoring")) {
 				message = "Sign in to request tutoring. New here? Create a free account in a minute.";

@@ -2,9 +2,10 @@ import { error, fail } from "@sveltejs/kit";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
 import { toMeeting } from "$lib/server/attendance";
+import QRCode from "qrcode";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load = (async ({ locals, params }) => {
+export const load = (async ({ locals, params, url }) => {
 	if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can see who checked in.");
 	let meeting;
 	try {
@@ -39,8 +40,14 @@ export const load = (async ({ locals, params }) => {
 				requestKey: null
 			})
 		: [];
+	const link = meeting.mode === "self" ? `${url.origin}/attendance/${meeting.code}` : "";
+	const qr = link
+		? await QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M" })
+		: "";
 	return {
 		meeting,
+		link,
+		qr,
 		checkIns: checkIns.map((checkIn) => ({
 			id: checkIn.id,
 			userId: checkIn.user as string,

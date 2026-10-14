@@ -4,9 +4,11 @@ import type { Actions, PageServerLoad } from "./$types";
 
 export const load = (async ({ locals }) => ({
 	openMeetings: (
-		await locals.pb
-			.collection("meetings")
-			.getFullList({ filter: openNowFilter(), sort: "opensAt", requestKey: null })
+		await locals.pb.collection("meetings").getFullList({
+			filter: `${openNowFilter()} && mode != "self"`,
+			sort: "opensAt",
+			requestKey: null
+		})
 	).map(toMeeting)
 })) satisfies PageServerLoad;
 
