@@ -32,6 +32,13 @@ export const actions: Actions = {
 		try {
 			await locals.pb.collection("users").authWithPassword(form.data.email, form.data.password);
 		} catch (error: unknown) {
+			const status = (error as { status?: number }).status;
+			if (status === 429) {
+				return setError(form, "", "Too many sign-in attempts. Wait a few seconds and try again.");
+			}
+			if (!status || status >= 500) {
+				return setError(form, "", "Sign-in is busy right now. Wait a few seconds and try again.");
+			}
 			return setError(form, "", "Incorrect email or password.");
 		}
 
