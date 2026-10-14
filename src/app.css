@@ -316,6 +316,11 @@ body {
 	margin-bottom: clamp(1.5rem, 3.5vw, 2.5rem);
 }
 
+/* Admin pages: the section tabs belong to the heading, so sit them close. */
+.page-header:has(+ .admin-subnav) {
+	margin-bottom: 0.75rem;
+}
+
 .page-header h1 {
 	font-size: clamp(2rem, 4vw, var(--text-3xl));
 	line-height: 1.05;
