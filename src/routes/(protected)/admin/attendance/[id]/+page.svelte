@@ -24,7 +24,10 @@
 	<header class="page-header"><div><h1>Admin</h1></div></header>
 	<AdminSubnav />
 
-	<a class="back" href="/admin/attendance">Attendance</a>
+	<a class="back" href="/admin/attendance">
+		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+		Attendance
+	</a>
 
 	<section class="panel">
 		<h2 class="meeting__title">{data.meeting.name}</h2>
@@ -109,9 +112,31 @@
 		align-content: start;
 	}
 	.back {
+		display: inline-flex;
+		align-items: center;
+		justify-self: start;
+		gap: 0.25rem;
+		min-height: 2.75rem;
+		margin-left: -0.4rem;
+		padding: 0 0.6rem 0 0.4rem;
+		border-radius: var(--radius-pill);
 		color: var(--muted);
 		font-size: var(--text-sm);
 		font-weight: 600;
+		text-decoration: none;
+	}
+	.back:hover {
+		background: var(--wash);
+		color: var(--ink);
+	}
+	.back svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentcolor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
 	}
 	.meeting__title {
 		margin: 0;

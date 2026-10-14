@@ -200,6 +200,10 @@
 <svelte:head><title>Check-in | ARISTA</title></svelte:head>
 
 <main class="page kiosk">
+	<a class="back" href="/admin/attendance">
+		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+		Attendance
+	</a>
 	{#if !data.openMeetings.length}
 		<section class="panel kiosk__card">
 			<h1>No meeting is open</h1>
@@ -321,6 +325,33 @@
 </main>
 
 <style>
+	.back {
+		display: inline-flex;
+		align-items: center;
+		justify-self: start;
+		gap: 0.25rem;
+		min-height: 2.75rem;
+		margin-left: -0.4rem;
+		padding: 0 0.6rem 0 0.4rem;
+		border-radius: var(--radius-pill);
+		color: var(--muted);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.back:hover {
+		background: var(--wash);
+		color: var(--ink);
+	}
+	.back svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentcolor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
+	}
 	.kiosk {
 		display: grid;
 		gap: 1rem;
