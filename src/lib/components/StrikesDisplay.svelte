@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { confirmDialog } from "$lib/skeleton-compat";
 	import calculateTotalStrikeWeight from "$lib/calculateTotalStrikeWeight";
 	import type { RecievedStrike } from "$lib/db_types";
 	import { enhance } from "$app/forms";
@@ -33,9 +34,14 @@
 						<form
 							method="POST"
 							action="?/delete_strike"
-							use:enhance={({ cancel }) => {
-								if (!confirm(`Remove the strike "${strike.reason}"? This can't be undone.`))
-									cancel();
+							use:enhance={async ({ cancel }) => {
+								const ok = await confirmDialog({
+									title: "Remove strike?",
+									body: `"${strike.reason}" comes off this member's record. This can't be undone.`,
+									confirmLabel: "Remove strike",
+									danger: true
+								});
+								if (!ok) cancel();
 							}}
 						>
 							<input type="hidden" name="strikeId" value={strike.id} />

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { confirmDialog } from "$lib/skeleton-compat";
 	import { enhance } from "$app/forms";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
 	import { downloadQrPng, qrFilename } from "$lib/qrDownload";
@@ -109,8 +110,14 @@
 						<form
 							method="POST"
 							action="?/remove_check_in"
-							use:enhance={({ cancel }) => {
-								if (!confirm(`Remove ${checkIn.name}'s check-in?`)) cancel();
+							use:enhance={async ({ cancel }) => {
+								const ok = await confirmDialog({
+									title: "Remove check-in?",
+									body: `${checkIn.name} will show as not checked in to this meeting.`,
+									confirmLabel: "Remove check-in",
+									danger: true
+								});
+								if (!ok) cancel();
 							}}
 						>
 							<input type="hidden" name="id" value={checkIn.id} />

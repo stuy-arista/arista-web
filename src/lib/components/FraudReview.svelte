@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { confirmDialog } from "$lib/skeleton-compat";
 	import { enhance } from "$app/forms";
 	import { page } from "$app/state";
 	import { format } from "date-fns";
@@ -43,15 +44,16 @@
 				method="POST"
 				action="?/undo_fraud"
 				class="fraud__undo"
-				use:enhance={({ cancel }) => {
-					if (
-						!confirm(
+				use:enhance={async ({ cancel }) => {
+					const ok = await confirmDialog({
+						title: "Undo fraud mark?",
+						body:
 							removed > 0
-								? `Undo the fraud mark? ${tutorName} gets ${removed} tutoring credit${removed === 1 ? "" : "s"} back.`
-								: "Undo the fraud mark?"
-						)
-					)
-						cancel();
+								? `${tutorName} gets ${removed} tutoring credit${removed === 1 ? "" : "s"} back.`
+								: "The session goes back to flagged.",
+						confirmLabel: "Undo fraud mark"
+					});
+					if (!ok) cancel();
 				}}
 			>
 				<input type="hidden" name="id" value={session.id} />
@@ -67,11 +69,14 @@
 		method="POST"
 		action="?/mark_fraud"
 		class="fraud fraud__mark"
-		use:enhance={({ cancel }) => {
-			if (
-				!confirm(`Mark this session fraudulent? ${tutorName} loses any tutoring credits from it.`)
-			)
-				cancel();
+		use:enhance={async ({ cancel }) => {
+			const ok = await confirmDialog({
+				title: "Mark fraudulent?",
+				body: `${tutorName} loses any tutoring credits from this session.`,
+				confirmLabel: "Mark fraudulent",
+				danger: true
+			});
+			if (!ok) cancel();
 		}}
 	>
 		<input type="hidden" name="id" value={session.id} />

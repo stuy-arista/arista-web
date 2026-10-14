@@ -39,4 +39,14 @@ export function getModalStore() {
 	};
 }
 
+/**
+ * Ask in the site's own dialog (never the browser's confirm()) and wait for the
+ * answer. Use inside an async enhance callback: `if (!(await confirmDialog({...}))) cancel();`
+ */
+export function confirmDialog(settings: Omit<ModalSettings, "response">) {
+	return new Promise<boolean>((resolve) =>
+		getModalStore().trigger({ ...settings, response: resolve })
+	);
+}
+
 export { Accordion, AccordionItem, AppShell, Modal, RadioGroup, RadioItem, SlideToggle };

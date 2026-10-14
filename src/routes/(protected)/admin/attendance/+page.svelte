@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { confirmDialog } from "$lib/skeleton-compat";
 	import { enhance } from "$app/forms";
 	import { page } from "$app/state";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
@@ -132,12 +133,16 @@
 								<form
 									method="POST"
 									action="?/delete_meeting"
-									use:enhance={({ cancel }) => {
-										const extra = meeting.count
-											? ` and its ${meeting.count} check-in${meeting.count === 1 ? "" : "s"} (photos already copied to Google Drive stay there)`
-											: "";
-										if (!confirm(`Delete "${meeting.name}"${extra}? This can't be undone.`))
-											cancel();
+									use:enhance={async ({ cancel }) => {
+										const ok = await confirmDialog({
+											title: "Delete meeting?",
+											body: meeting.count
+												? `"${meeting.name}" and its ${meeting.count} check-in${meeting.count === 1 ? "" : "s"} are deleted. Photos already copied to Google Drive stay there.`
+												: `"${meeting.name}" is deleted.`,
+											confirmLabel: "Delete meeting",
+											danger: true
+										});
+										if (!ok) cancel();
 									}}
 								>
 									<input type="hidden" name="id" value={meeting.id} />

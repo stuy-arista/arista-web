@@ -10,7 +10,7 @@
 	import { enhance, deserialize, applyAction } from "$app/forms";
 	import ErrorComponent from "$lib/components/ErrorComponent.svelte";
 	import InputField from "$lib/components/InputField.svelte";
-	import { type ModalSettings, getModalStore } from "$lib/skeleton-compat";
+	import { type ModalSettings, confirmDialog, getModalStore } from "$lib/skeleton-compat";
 	import type { ActionResult } from "@sveltejs/kit";
 	import { displayName, initials } from "$lib/displayName";
 
@@ -21,10 +21,21 @@
 	let unsavedEdits = $state(false);
 	const markUnsaved = () => (unsavedEdits = true);
 	const markSaved = () => (unsavedEdits = false);
-	beforeNavigate(({ cancel, type }) => {
-		if (!unsavedEdits || type === "leave") return;
-		if (!confirm("You have unsaved changes in Settings. Leave without saving?")) cancel();
-		else unsavedEdits = false;
+	// Navigation can't wait for an answer, so stop it, ask in our own dialog,
+	// and go on to the same place if they choose to leave.
+	beforeNavigate(({ cancel, type, to }) => {
+		if (!unsavedEdits || type === "leave" || !to) return;
+		cancel();
+		confirmDialog({
+			title: "Leave without saving?",
+			body: "You have unsaved changes in Settings.",
+			confirmLabel: "Leave without saving",
+			danger: true
+		}).then((leave) => {
+			if (!leave) return;
+			unsavedEdits = false;
+			goto(to.url);
+		});
 	});
 	function warnBeforeUnload(event: BeforeUnloadEvent) {
 		if (unsavedEdits) event.preventDefault();
