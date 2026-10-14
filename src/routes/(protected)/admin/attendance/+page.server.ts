@@ -61,5 +61,16 @@ export const actions: Actions = {
 			.collection("meetings")
 			.update(id, { closesAt: new Date().toISOString() }, { requestKey: null });
 		return { meetingClosed: id };
+	},
+	// Also removes the meeting's check-ins and their photos (cascade).
+	delete_meeting: async ({ locals, request }) => {
+		requireAdmin(locals);
+		const id = String((await request.formData()).get("id") ?? "");
+		try {
+			await locals.pb.collection("meetings").delete(id, { requestKey: null });
+		} catch {
+			return fail(400, { meetingError: "Couldn't delete that meeting. Try again." });
+		}
+		return { meetingDeleted: id };
 	}
 };

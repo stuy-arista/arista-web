@@ -107,12 +107,29 @@
 								>{status === "open" ? "Open" : status === "upcoming" ? "Upcoming" : "Closed"}</span
 							>
 							<span class="meetings__count">{meeting.count} checked in</span>
-							{#if status === "open"}
-								<form method="POST" action="?/close_meeting" use:enhance>
+							<div class="meetings__actions">
+								{#if status === "open"}
+									<form method="POST" action="?/close_meeting" use:enhance>
+										<input type="hidden" name="id" value={meeting.id} />
+										<button class="btn btn-sm" type="submit">Close now</button>
+									</form>
+								{/if}
+								<form
+									method="POST"
+									action="?/delete_meeting"
+									use:enhance={({ cancel }) => {
+										const extra = meeting.count
+											? ` and its ${meeting.count} check-in${meeting.count === 1 ? "" : "s"} (photos already copied to Google Drive stay there)`
+											: "";
+										if (!confirm(`Delete "${meeting.name}"${extra}? This can't be undone.`))
+											cancel();
+									}}
+								>
 									<input type="hidden" name="id" value={meeting.id} />
-									<button class="btn btn-sm" type="submit">Close now</button>
+									<button class="btn btn-sm btn-ghost meetings__delete" type="submit">Delete</button
+									>
 								</form>
-							{/if}
+							</div>
 						</li>
 					{/each}
 				</ul>
@@ -180,6 +197,14 @@
 	}
 	.meetings__name {
 		font-weight: 650;
+	}
+	.meetings__actions {
+		display: flex;
+		gap: 0.4rem;
+		justify-content: end;
+	}
+	.meetings__delete {
+		color: var(--danger);
 	}
 	.meetings__count {
 		color: var(--muted);
