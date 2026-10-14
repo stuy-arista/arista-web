@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
+	import { downloadQrPng, qrFilename } from "$lib/qrDownload";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -66,6 +67,12 @@
 					>
 					<a class="btn btn-sm" href="/admin/attendance/{data.meeting.id}/qr" target="_blank"
 						>Show QR full screen</a
+					>
+					<button
+						class="btn btn-sm"
+						type="button"
+						onclick={() => downloadQrPng(data.qr, qrFilename(data.meeting.name))}
+						>Download PNG</button
 					>
 				</div>
 			</div>
@@ -178,8 +185,8 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		border-radius: 8px;
-		background: #fff;
+		border-radius: 12px;
+		box-shadow: 0 0 0 1px var(--line);
 	}
 	.share__text p {
 		margin: 0.4rem 0 0;

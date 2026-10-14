@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
+	import { downloadQrPng, qrFilename } from "$lib/qrDownload";
 	let { data }: { data: PageData } = $props();
 </script>
 
@@ -11,6 +12,11 @@
 	<!-- The SVG comes from our own QR generator, not user input. -->
 	<div class="qr-screen__code">{@html data.qr}</div>
 	<p class="qr-screen__link">{data.link.replace(/^https?:\/\//, "")}</p>
+	<button
+		class="btn btn-sm qr-screen__download"
+		type="button"
+		onclick={() => downloadQrPng(data.qr, qrFilename(data.name))}>Download PNG</button
+	>
 </main>
 
 <style>
@@ -34,10 +40,18 @@
 		font-size: clamp(1.1rem, 2.5vw, 1.5rem);
 	}
 	.qr-screen__code {
-		width: min(70vh, 85vw);
-		padding: 1rem;
-		border-radius: 16px;
-		background: #fff;
+		width: min(68vh, 85vw);
+		border-radius: 20px;
+		box-shadow: 0 12px 40px rgb(22 39 90 / 18%);
+		overflow: hidden;
+	}
+	/* Hidden when projecting; it's there for whoever set up the screen. */
+	.qr-screen__download {
+		opacity: 0.6;
+	}
+	.qr-screen__download:hover,
+	.qr-screen__download:focus-visible {
+		opacity: 1;
 	}
 	.qr-screen__code :global(svg) {
 		display: block;

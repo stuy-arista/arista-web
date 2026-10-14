@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import QRCode from "qrcode";
+import { brandedQr } from "$lib/server/brandedQr";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
 import { toMeeting } from "$lib/server/attendance";
@@ -21,6 +21,6 @@ export const load = (async ({ locals, params, url }) => {
 	return {
 		name: meeting.name,
 		link,
-		qr: await QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M" })
+		qr: await brandedQr(link)
 	};
 }) satisfies PageServerLoad;

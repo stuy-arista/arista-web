@@ -2,7 +2,7 @@ import { error, fail } from "@sveltejs/kit";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
 import { toMeeting } from "$lib/server/attendance";
-import QRCode from "qrcode";
+import { brandedQr } from "$lib/server/brandedQr";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load = (async ({ locals, params, url }) => {
@@ -41,9 +41,7 @@ export const load = (async ({ locals, params, url }) => {
 			})
 		: [];
 	const link = meeting.mode === "self" ? `${url.origin}/attendance/${meeting.code}` : "";
-	const qr = link
-		? await QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M" })
-		: "";
+	const qr = link ? await brandedQr(link) : "";
 	return {
 		meeting,
 		link,
