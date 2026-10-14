@@ -19,8 +19,11 @@ export const load = (async ({ locals, params }) => {
 			{ requestKey: null }
 		)) as SelfMeeting;
 		return { meeting, name: locals.user?.preferredName || locals.user?.name || "" };
-	} catch {
-		error(404, "This check-in link isn't valid. Ask an officer for the right QR code.");
+	} catch (lookupError) {
+		if ((lookupError as { status?: number }).status === 404) {
+			error(404, "This check-in link isn't valid. Ask an officer for the right QR code.");
+		}
+		error(503, "Check-in is busy right now. Wait a few seconds and reload this page.");
 	}
 }) satisfies PageServerLoad;
 
@@ -39,8 +42,17 @@ export const actions: Actions = {
 				requestKey: null
 			});
 		} catch (sendError) {
-			const message = (sendError as { response?: { message?: string } }).response?.message;
-			return fail(400, { checkInError: message || "Couldn't check in. Try again." });
+			const { status, response } = sendError as {
+				status?: number;
+				response?: { message?: string };
+			};
+			// Messages from our own checks (already checked in, closed, members only).
+			if (status && status >= 400 && status < 500 && response?.message) {
+				return fail(400, { checkInError: response.message });
+			}
+			return fail(503, {
+				checkInError: "Check-in is busy right now. Wait a few seconds and tap Check in again."
+			});
 		}
 		return { checkedIn: true };
 	}

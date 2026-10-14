@@ -7,21 +7,71 @@ import {
 	type AdminSection
 } from "$lib/adminAccess";
 import { env } from "$env/dynamic/public";
+import { env as privateEnv } from "$env/dynamic/private";
 import { dev } from "$app/environment";
 import { error, redirect, type Handle } from "@sveltejs/kit";
-import PocketBase from "pocketbase";
+import PocketBase, { type RecordModel } from "pocketbase";
 import { isIndexablePage } from "$lib/seo";
+
+// Checking a session with PocketBase on every request is the biggest share of
+// its work when hundreds of people are on the site, so reuse a check for a
+// minute (per server instance). Changes to someone's account, like membership,
+// show up within that minute.
+const REFRESH_REUSE_MS = 60_000;
+const recentRefreshes = new Map<string, { token: string; record: RecordModel; at: number }>();
+function pruneRefreshes() {
+	if (recentRefreshes.size < 5000) return;
+	const cutoff = Date.now() - REFRESH_REUSE_MS;
+	for (const [key, entry] of recentRefreshes) if (entry.at < cutoff) recentRefreshes.delete(key);
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const pb = new PocketBase(env.PUBLIC_POCKETBASE_URL || "https://db.stuyarista.org");
 
+	// PocketBase rate-limits per IP address, but every request from the site
+	// reaches it from Vercel's servers. Pass the visitor's real address along
+	// (nginx on the server only trusts it alongside the shared key), so limits
+	// apply per person instead of to everyone at once.
+	const proxyKey = privateEnv.PB_PROXY_SECRET;
+	if (proxyKey) {
+		let clientIp = "";
+		try {
+			clientIp = event.getClientAddress();
+		} catch {
+			// Not available (e.g. during prerendering).
+		}
+		if (clientIp) {
+			pb.beforeSend = (url, options) => {
+				options.headers = {
+					...(options.headers as Record<string, string>),
+					"X-Arista-Proxy-Key": proxyKey,
+					"X-Arista-Client-IP": clientIp
+				};
+				return { url, options };
+			};
+		}
+	}
+
 	// before
 	pb.authStore.loadFromCookie(event.request.headers.get("cookie") || "");
 	if (pb.authStore.isValid) {
-		try {
-			await pb.collection("users").authRefresh({ requestKey: null });
-		} catch (_) {
-			pb.authStore.clear();
+		const cookieToken = pb.authStore.token;
+		const cached = recentRefreshes.get(cookieToken);
+		if (cached && Date.now() - cached.at < REFRESH_REUSE_MS) {
+			pb.authStore.save(cached.token, cached.record);
+		} else {
+			try {
+				const { token, record } = await pb.collection("users").authRefresh({ requestKey: null });
+				const entry = { token, record, at: Date.now() };
+				recentRefreshes.set(cookieToken, entry);
+				recentRefreshes.set(token, entry);
+				pruneRefreshes();
+			} catch (refreshError) {
+				// Only a real "this session is no good" signs someone out. A slow or
+				// busy server must not: the token in their cookie is still valid.
+				const status = (refreshError as { status?: number }).status;
+				if (status === 401 || status === 403 || status === 404) pb.authStore.clear();
+			}
 		}
 	}
 
