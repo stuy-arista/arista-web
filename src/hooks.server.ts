@@ -102,7 +102,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 					? "tutoring"
 					: path.startsWith("/admin/credits")
 						? "credits"
-						: "people";
+						: path.startsWith("/admin/attendance")
+							? "attendance"
+							: "people";
 		const allowed = section === "permissions" ? isAdmin(user) : canAccess(user, section);
 		if (!allowed) {
 			const fallback = accessibleSections(user)[0];

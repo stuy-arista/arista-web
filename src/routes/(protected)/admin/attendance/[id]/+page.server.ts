@@ -1,0 +1,73 @@
+import { error, fail } from "@sveltejs/kit";
+import { isAdmin } from "$lib/adminAccess";
+import type { RecievedUser } from "$lib/db_types";
+import { toMeeting } from "$lib/server/attendance";
+import type { Actions, PageServerLoad } from "./$types";
+
+export const load = (async ({ locals, params }) => {
+	if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can see who checked in.");
+	let meeting;
+	try {
+		meeting = toMeeting(
+			await locals.pb.collection("meetings").getOne(params.id, { requestKey: null })
+		);
+	} catch {
+		error(404, "Meeting not found.");
+	}
+	const [checkIns, members] = await Promise.all([
+		locals.pb.collection("attendance").getFullList({
+			filter: `meeting="${meeting.id}"`,
+			sort: "created",
+			requestKey: null
+		}),
+		locals.pb.collection("users").getFullList({
+			filter: "member=true",
+			fields: "id,name,graduationYear",
+			sort: "name",
+			requestKey: null
+		})
+	]);
+	const nameOf = new Map(members.map((member) => [member.id, member.name as string]));
+	const present = new Set(checkIns.map((checkIn) => checkIn.user as string));
+	const takerIds = [
+		...new Set(checkIns.map((checkIn) => checkIn.takenBy as string).filter(Boolean))
+	];
+	const takers = takerIds.length
+		? await locals.pb.collection("publicUsers").getFullList({
+				filter: takerIds.map((id) => `id="${id}"`).join(" || "),
+				fields: "id,name",
+				requestKey: null
+			})
+		: [];
+	return {
+		meeting,
+		checkIns: checkIns.map((checkIn) => ({
+			id: checkIn.id,
+			userId: checkIn.user as string,
+			name: nameOf.get(checkIn.user) ?? "Former member",
+			time: checkIn.created as string,
+			hasPhoto: Boolean(checkIn.photo),
+			takenBy: takers.find((taker) => taker.id === checkIn.takenBy)?.name ?? ""
+		})),
+		absent: members
+			.filter((member) => !present.has(member.id))
+			.map((member) => ({
+				id: member.id,
+				name: member.name as string,
+				graduationYear: member.graduationYear as number
+			}))
+	};
+}) satisfies PageServerLoad;
+
+export const actions: Actions = {
+	remove_check_in: async ({ locals, request }) => {
+		if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can remove check-ins.");
+		const id = String((await request.formData()).get("id") ?? "");
+		try {
+			await locals.pb.collection("attendance").delete(id, { requestKey: null });
+		} catch {
+			return fail(400, { removeError: "Couldn't remove that check-in." });
+		}
+		return { removed: id };
+	}
+};

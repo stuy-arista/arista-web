@@ -1,6 +1,6 @@
 import { isOnCommittee } from "$lib/isOnCommittee";
 
-export const ADMIN_SECTIONS = ["people", "crediting", "tutoring", "credits"] as const;
+export const ADMIN_SECTIONS = ["people", "crediting", "tutoring", "credits", "attendance"] as const;
 export type AdminSection = (typeof ADMIN_SECTIONS)[number];
 
 export const ADMIN_SECTION_INFO: Record<
@@ -26,6 +26,11 @@ export const ADMIN_SECTION_INFO: Record<
 		label: "Credits & semesters",
 		href: "/admin/credits",
 		description: "Requirements and the current semester"
+	},
+	attendance: {
+		label: "Attendance",
+		href: "/admin/attendance",
+		description: "Run meeting check-in on this account's device"
 	}
 };
 

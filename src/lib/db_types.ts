@@ -28,7 +28,9 @@ export const UserSchema = z.object({
 	creditChoice: z.boolean().default(false),
 	themePreference: z.enum(["system", "light", "dark"]).default("system"),
 	muteMessageEmails: z.boolean().default(false),
-	adminSections: z.array(z.enum(["people", "crediting", "tutoring", "credits"])).optional()
+	adminSections: z
+		.array(z.enum(["people", "crediting", "tutoring", "credits", "attendance"]))
+		.optional()
 });
 
 export const EventSchema = z
