@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Navbar from "$lib/components/Navbar.svelte";
+	import LiveUpdates from "$lib/components/LiveUpdates.svelte";
 	import SiteFooter from "$lib/components/SiteFooter.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import "../app.css";
@@ -128,6 +129,7 @@
 <Seo url={page.url} status={page.status} signedIn={!!data.user} />
 
 <Modal />
+<LiveUpdates />
 
 <!-- App Shell -->
 <AppShell>
