@@ -77,17 +77,15 @@ export const actions: Actions = {
 			.slice(0, 300);
 		if (!user) return fail(400, { markError: "Pick a member first." });
 		try {
-			await locals.pb
-				.collection("attendance")
-				.create(
-					{
-						meeting: params.id,
-						user,
-						takenBy: locals.user?.id,
-						note: note || "Marked present by an admin"
-					},
-					{ requestKey: null }
-				);
+			await locals.pb.collection("attendance").create(
+				{
+					meeting: params.id,
+					user,
+					takenBy: locals.user?.id,
+					note: note || "Marked present by an admin"
+				},
+				{ requestKey: null }
+			);
 		} catch (createError) {
 			const details = (createError as { response?: { data?: Record<string, { code?: string }> } })
 				.response?.data;

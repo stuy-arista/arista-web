@@ -73,6 +73,7 @@ export const load: LayoutServerLoad = async ({ url, locals }) => {
 	const search = url.searchParams.get("search")?.trim() ?? "";
 	const membersOnly = url.searchParams.get("members") === "true";
 	const insufficientOnly = url.searchParams.get("insufficient") === "true";
+	const bigSibOnly = url.searchParams.get("bigsib") === "true";
 	const graduationYears = url.searchParams
 		.getAll("year")
 		.map(Number)
@@ -81,6 +82,7 @@ export const load: LayoutServerLoad = async ({ url, locals }) => {
 	const perPage = directoryPageSize(url.searchParams.get("limit"));
 	const filters: string[] = [];
 	if (membersOnly || insufficientOnly) filters.push("member=true");
+	if (bigSibOnly) filters.push("bigSib=true");
 	if (graduationYears.length)
 		filters.push(`(${graduationYears.map((year) => `graduationYear=${year}`).join(" || ")})`);
 
@@ -213,7 +215,7 @@ export const load: LayoutServerLoad = async ({ url, locals }) => {
 			totalItems,
 			totalPages
 		},
-		filters: { search, membersOnly, insufficientOnly, graduationYears },
+		filters: { search, membersOnly, insufficientOnly, bigSibOnly, graduationYears },
 		sorting: { key: databaseSort || computedSort ? sortKey : "", dir: sortDir }
 	};
 };

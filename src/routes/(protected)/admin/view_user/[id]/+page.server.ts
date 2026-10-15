@@ -127,11 +127,27 @@ export const load = (async ({ params, locals }) => {
 		strikeForm,
 		creditForm,
 		tutoringSessions,
-		canManage
+		canManage,
+		isAdmin: isOnCommittee(locals.user as RecievedUser, "admin")
 	};
 }) satisfies PageServerLoad;
 
 export const actions = {
+	set_big_sib: async ({ request, locals, params }) => {
+		if (!isOnCommittee(locals.user as RecievedUser, "admin")) {
+			return fail(403, { bigSibError: "Only admins can change Big Sib status." });
+		}
+		const value = (await request.formData()).get("bigSib") === "true";
+		try {
+			await locals.pb
+				.collection("users")
+				.update(params.id, { bigSib: value }, { requestKey: null });
+		} catch (updateError) {
+			console.error(updateError);
+			return fail(400, { bigSibError: "Couldn't save Big Sib status. Try again." });
+		}
+		return { bigSibUpdated: true };
+	},
 	set_credit_choice: async ({ request, locals, params }) => {
 		if (!isOnCommittee(locals.user as RecievedUser, "admin")) {
 			return fail(403, { choiceError: "Only admins can change a member's credit focus." });

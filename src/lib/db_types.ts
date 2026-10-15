@@ -26,6 +26,7 @@ export const UserSchema = z.object({
 	committees: CommitteesSchema.array().max(5),
 	member: z.boolean().default(false),
 	creditChoice: z.boolean().default(false),
+	bigSib: z.boolean().optional(),
 	themePreference: z.enum(["system", "light", "dark"]).default("system"),
 	muteMessageEmails: z.boolean().default(false),
 	adminSections: z

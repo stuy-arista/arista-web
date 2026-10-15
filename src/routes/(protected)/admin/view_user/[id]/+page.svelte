@@ -57,9 +57,20 @@
 					{/each}
 				</p>
 			</div>
-			<span class="badge" class:badge--success={full_user.member}
-				>{full_user.member ? "ARISTA member" : "Student account"}</span
-			>
+			<div class="view-user__badges">
+				<span class="badge" class:badge--success={full_user.member}
+					>{full_user.member ? "ARISTA member" : "Student account"}</span
+				>
+				{#if full_user.bigSib}<span class="badge">Big Sib</span>{/if}
+				{#if data.isAdmin && full_user.member}
+					<form method="POST" action="?/set_big_sib" use:enhance>
+						<input type="hidden" name="bigSib" value={full_user.bigSib ? "false" : "true"} />
+						<button class="btn btn-sm btn-ghost" type="submit"
+							>{full_user.bigSib ? "Remove Big Sib" : "Mark as Big Sib"}</button
+						>
+					</form>
+				{/if}
+			</div>
 		</header>
 
 		{#if full_user.member}
@@ -395,5 +406,11 @@
 		.actions {
 			grid-template-columns: 1fr;
 		}
+	}
+	.view-user__badges {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
 	}
 </style>

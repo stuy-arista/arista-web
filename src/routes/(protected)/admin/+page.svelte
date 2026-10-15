@@ -17,6 +17,7 @@
 			search: "",
 			membersOnly: false,
 			insufficientOnly: false,
+			bigSibOnly: false,
 			graduationYears: [] as number[]
 		}
 	);
@@ -73,6 +74,7 @@
 		if (filters.search) params.set("search", filters.search);
 		if (filters.membersOnly) params.set("members", "true");
 		if (filters.insufficientOnly) params.set("insufficient", "true");
+		if (filters.bigSibOnly) params.set("bigsib", "true");
 		for (const year of filters.graduationYears ?? []) params.append("year", String(year));
 		if (pagination.perPage !== 25) params.set("limit", String(pagination.perPage));
 		params.set("page", String(page));
@@ -84,6 +86,7 @@
 		if (filters.search) params.set("search", filters.search);
 		if (filters.membersOnly) params.set("members", "true");
 		if (filters.insufficientOnly) params.set("insufficient", "true");
+		if (filters.bigSibOnly) params.set("bigsib", "true");
 		for (const year of filters.graduationYears ?? []) params.append("year", String(year));
 		return `/admin/export?${params}`;
 	}
@@ -224,6 +227,16 @@
 				/>
 				<span>Below requirements</span>
 			</label>
+			<label class="toggle-chip">
+				<input
+					name="bigsib"
+					value="true"
+					type="checkbox"
+					checked={filters.bigSibOnly}
+					onchange={submitFilters}
+				/>
+				<span>Big Sibs</span>
+			</label>
 			<details class="year-picker">
 				<summary class="toggle-chip__look" class:is-on={filters.graduationYears?.length}>
 					{filters.graduationYears?.length
@@ -314,6 +327,7 @@
 						<div class="people-cards__top">
 							<div>
 								<a class="people-cards__name" href={`/admin/view_user/${user.id}`}>{user.name}</a>
+								{#if user.bigSib}<span class="badge big-sib-badge">Big Sib</span>{/if}
 								<p>{user.email}</p>
 								<p>{[user.homeroom, user.graduationYear].filter(Boolean).join(" · ")}</p>
 							</div>
@@ -380,10 +394,10 @@
 					<tbody>
 						{#each users as user (user.id)}
 							<tr>
-								<td
-									><a class="people-table__name" href={`/admin/view_user/${user.id}`}>{user.name}</a
-									></td
-								>
+								<td>
+									<a class="people-table__name" href={`/admin/view_user/${user.id}`}>{user.name}</a>
+									{#if user.bigSib}<span class="badge big-sib-badge">Big Sib</span>{/if}
+								</td>
 								<td class="muted">{user.email}</td>
 								<td>{user.member ? "Member" : "Tutee"}</td>
 								<td class="num">{@render credit(user, "event")}</td>
@@ -723,5 +737,10 @@
 		.people-cards dl {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
+	}
+	.big-sib-badge {
+		margin-left: 0.4rem;
+		vertical-align: middle;
+		font-size: var(--text-xs);
 	}
 </style>

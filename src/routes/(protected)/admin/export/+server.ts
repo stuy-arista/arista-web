@@ -35,6 +35,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const search = url.searchParams.get("search")?.trim() ?? "";
 	const membersOnly = url.searchParams.get("members") === "true";
+	const bigSibOnly = url.searchParams.get("bigsib") === "true";
 	const insufficientOnly = url.searchParams.get("insufficient") === "true";
 	const graduationYears = url.searchParams
 		.getAll("year")
@@ -42,6 +43,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		.filter((year) => Number.isInteger(year) && year >= 2000 && year <= 2100);
 	const filters: string[] = [];
 	if (membersOnly || insufficientOnly) filters.push("member=true");
+	if (bigSibOnly) filters.push("bigSib=true");
 	if (graduationYears.length)
 		filters.push(`(${graduationYears.map((year) => `graduationYear=${year}`).join(" || ")})`);
 	if (search) {
