@@ -32,8 +32,9 @@
 		}, 300);
 	}
 
-	const grantedIds = $derived(new Set(data.granted.map((person) => person.id)));
-	const searchResults = $derived(data.results.filter((person) => !grantedIds.has(person.id)));
+	// Search finds anyone, including people who already have access, so their
+	// permissions can be changed from here too.
+	const searchResults = $derived(data.results);
 </script>
 
 <svelte:head><title>Permissions | ARISTA admin</title></svelte:head>
@@ -103,7 +104,7 @@
 			/>
 		</label>
 		{#if data.query.length >= 2 && searchResults.length === 0}
-			<p class="muted">No one new matches “{data.query}”.</p>
+			<p class="muted">No one matches “{data.query}”.</p>
 		{/if}
 		{#if searchResults.length}
 			<ul class="people">
