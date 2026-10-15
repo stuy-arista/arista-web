@@ -18,6 +18,15 @@
 	let picked = $state<Member | null>(null);
 	let note = $state("");
 	const checkedInIds = $derived(new Set(data.checkIns.map((checkIn) => checkIn.userId)));
+
+	// "Exclude Big Sibs" hides them from both lists and the counts.
+	let excludeBigSibs = $state(false);
+	const checkIns = $derived(
+		excludeBigSibs ? data.checkIns.filter((checkIn) => !checkIn.bigSib) : data.checkIns
+	);
+	const absent = $derived(
+		excludeBigSibs ? data.absent.filter((person) => !person.bigSib) : data.absent
+	);
 	let searchTimer: ReturnType<typeof setTimeout> | undefined;
 	function search(value: string) {
 		query = value;
@@ -76,9 +85,17 @@
 			<p class="meeting__message">Check-in message: {data.meeting.instructions}</p>
 		{/if}
 		<p class="meeting__stats">
-			<strong>{data.checkIns.length}</strong> checked in ·
-			<strong>{data.absent.length}</strong> members didn't
+			<strong>{checkIns.length}</strong> checked in ·
+			<strong>{absent.length}</strong> members didn't
 		</p>
+		<button
+			class="btn btn-sm big-sib-toggle"
+			type="button"
+			aria-pressed={excludeBigSibs}
+			class:is-on={excludeBigSibs}
+			onclick={() => (excludeBigSibs = !excludeBigSibs)}
+			>{excludeBigSibs ? "Showing everyone except Big Sibs" : "Exclude Big Sibs"}</button
+		>
 		<details class="edit" bind:open={editing}>
 			<summary>Edit meeting</summary>
 			<form
@@ -253,12 +270,12 @@
 
 	<section class="panel">
 		<details class="checkins-toggle" open>
-			<summary><h2 class="section-title">Checked in ({data.checkIns.length})</h2></summary>
-			{#if data.checkIns.length === 0}
+			<summary><h2 class="section-title">Checked in ({checkIns.length})</h2></summary>
+			{#if checkIns.length === 0}
 				<p class="muted">Nobody has checked in yet.</p>
 			{:else}
 				<ul class="checkins">
-					{#each data.checkIns as checkIn (checkIn.id)}
+					{#each checkIns as checkIn (checkIn.id)}
 						<li>
 							{#if checkIn.hasPhoto}
 								<a href="/admin/attendance/photo/{checkIn.id}" target="_blank" rel="noreferrer">
@@ -311,14 +328,14 @@
 
 	<section class="panel">
 		<div class="absent__head">
-			<h2 class="section-title">Didn't check in ({data.absent.length})</h2>
+			<h2 class="section-title">Didn't check in ({absent.length})</h2>
 			<button class="btn btn-sm" type="button" onclick={() => (showAbsent = !showAbsent)}
 				>{showAbsent ? "Hide" : "Show"}</button
 			>
 		</div>
 		{#if showAbsent}
 			<ul class="absent">
-				{#each data.absent as person (person.id)}
+				{#each absent as person (person.id)}
 					<li>
 						<a class="text-link" href="/admin/view_user/{person.id}">{person.name}</a>
 						<span class="muted">{person.graduationYear}</span>
@@ -592,5 +609,13 @@
 		padding: 0.3rem 0;
 		break-inside: avoid;
 		font-size: var(--text-sm);
+	}
+	.big-sib-toggle {
+		margin-top: 0.6rem;
+	}
+	.big-sib-toggle.is-on {
+		border-color: var(--seal, var(--ink));
+		background: var(--wash);
+		color: var(--ink);
 	}
 </style>

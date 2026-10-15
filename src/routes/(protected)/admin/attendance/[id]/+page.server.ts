@@ -23,12 +23,13 @@ export const load = (async ({ locals, params, url }) => {
 		}),
 		locals.pb.collection("users").getFullList({
 			filter: "member=true",
-			fields: "id,name,graduationYear",
+			fields: "id,name,graduationYear,bigSib",
 			sort: "name",
 			requestKey: null
 		})
 	]);
 	const nameOf = new Map(members.map((member) => [member.id, member.name as string]));
+	const bigSibs = new Set(members.filter((member) => member.bigSib).map((member) => member.id));
 	const present = new Set(checkIns.map((checkIn) => checkIn.user as string));
 	const takerIds = [
 		...new Set(checkIns.map((checkIn) => checkIn.takenBy as string).filter(Boolean))
@@ -50,6 +51,7 @@ export const load = (async ({ locals, params, url }) => {
 			id: checkIn.id,
 			userId: checkIn.user as string,
 			name: nameOf.get(checkIn.user) ?? "Former member",
+			bigSib: bigSibs.has(checkIn.user),
 			time: checkIn.created as string,
 			hasPhoto: Boolean(checkIn.photo),
 			note: (checkIn.note as string) ?? "",
@@ -60,7 +62,8 @@ export const load = (async ({ locals, params, url }) => {
 			.map((member) => ({
 				id: member.id,
 				name: member.name as string,
-				graduationYear: member.graduationYear as number
+				graduationYear: member.graduationYear as number,
+				bigSib: Boolean(member.bigSib)
 			}))
 	};
 }) satisfies PageServerLoad;
