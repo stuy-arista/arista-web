@@ -17,6 +17,7 @@
 	let results = $state<Member[]>([]);
 	let picked = $state<Member | null>(null);
 	let note = $state("");
+	const checkedInIds = $derived(new Set(data.checkIns.map((checkIn) => checkIn.userId)));
 	let searchTimer: ReturnType<typeof setTimeout> | undefined;
 	function search(value: string) {
 		query = value;
@@ -232,9 +233,15 @@
 					<ul class="present-form__results">
 						{#each results as person (person.id)}
 							<li>
-								<button type="button" onclick={() => (picked = person)}>
-									{person.name} <span class="muted">Class of {person.graduationYear}</span>
-								</button>
+								{#if checkedInIds.has(person.id)}
+									<button type="button" disabled>
+										{person.name} <span class="muted">Already checked in</span>
+									</button>
+								{:else}
+									<button type="button" onclick={() => (picked = person)}>
+										{person.name} <span class="muted">Class of {person.graduationYear}</span>
+									</button>
+								{/if}
 							</li>
 						{/each}
 					</ul>
@@ -508,8 +515,13 @@
 		text-align: left;
 		cursor: pointer;
 	}
-	.present-form__results button:hover,
-	.present-form__results button:focus-visible {
+	.present-form__results button:disabled {
+		background: var(--surface-sunken);
+		color: var(--muted);
+		cursor: not-allowed;
+	}
+	.present-form__results button:hover:not(:disabled),
+	.present-form__results button:focus-visible:not(:disabled) {
 		border-color: var(--seal, var(--ink));
 	}
 	.checkins img,
