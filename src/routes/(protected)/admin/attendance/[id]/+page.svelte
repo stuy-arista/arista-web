@@ -245,7 +245,7 @@
 	</section>
 
 	<section class="panel">
-		<details class="collapse" open>
+		<details class="checkins-toggle" open>
 			<summary><h2 class="section-title">Checked in ({data.checkIns.length})</h2></summary>
 			{#if data.checkIns.length === 0}
 				<p class="muted">Nobody has checked in yet.</p>
@@ -525,21 +525,21 @@
 		font-size: var(--text-xs);
 		text-align: center;
 	}
-	.collapse > summary {
+	.checkins-toggle > summary {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		list-style: none;
 		cursor: pointer;
 	}
-	.collapse > summary::-webkit-details-marker {
+	.checkins-toggle > summary::-webkit-details-marker {
 		display: none;
 	}
-	.collapse > summary h2 {
+	.checkins-toggle > summary h2 {
 		margin: 0;
 	}
 	/* Chevron that turns when the list opens. */
-	.collapse > summary::before {
+	.checkins-toggle > summary::before {
 		content: "";
 		width: 0.55rem;
 		height: 0.55rem;
@@ -548,7 +548,7 @@
 		transform: rotate(-45deg);
 		transition: transform var(--dur-2, 0.15s) ease;
 	}
-	.collapse[open] > summary::before {
+	.checkins-toggle[open] > summary::before {
 		transform: rotate(45deg);
 	}
 	.checkins__info {
