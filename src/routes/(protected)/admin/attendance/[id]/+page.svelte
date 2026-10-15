@@ -187,7 +187,7 @@
 		<form
 			method="POST"
 			action="?/mark_present"
-			class="mark"
+			class="present-form"
 			use:enhance={() =>
 				async ({ result, update }) => {
 					await update({ reset: false });
@@ -201,7 +201,7 @@
 		>
 			<h3>Mark present without a photo</h3>
 			{#if picked}
-				<p class="mark__picked">
+				<p class="present-form__picked">
 					<strong>{picked.name}</strong>
 					<button class="btn btn-sm btn-ghost" type="button" onclick={() => (picked = null)}
 						>Change</button
@@ -229,7 +229,7 @@
 					/>
 				</label>
 				{#if results.length}
-					<ul class="mark__results">
+					<ul class="present-form__results">
 						{#each results as person (person.id)}
 							<li>
 								<button type="button" onclick={() => (picked = person)}>
@@ -245,59 +245,61 @@
 	</section>
 
 	<section class="panel">
-		<h2 class="section-title">Checked in</h2>
-		{#if data.checkIns.length === 0}
-			<p class="muted">Nobody has checked in yet.</p>
-		{:else}
-			<ul class="checkins">
-				{#each data.checkIns as checkIn (checkIn.id)}
-					<li>
-						{#if checkIn.hasPhoto}
-							<a href="/admin/attendance/photo/{checkIn.id}" target="_blank" rel="noreferrer">
-								<img
-									src="/admin/attendance/photo/{checkIn.id}"
-									alt="Check-in photo of {checkIn.name}"
-									loading="lazy"
-								/>
-							</a>
-						{:else if checkIn.note}
-							<div class="checkins__nophoto checkins__marked">
-								<strong>Marked present</strong>
-								<span>{checkIn.note}</span>
+		<details class="collapse" open>
+			<summary><h2 class="section-title">Checked in ({data.checkIns.length})</h2></summary>
+			{#if data.checkIns.length === 0}
+				<p class="muted">Nobody has checked in yet.</p>
+			{:else}
+				<ul class="checkins">
+					{#each data.checkIns as checkIn (checkIn.id)}
+						<li>
+							{#if checkIn.hasPhoto}
+								<a href="/admin/attendance/photo/{checkIn.id}" target="_blank" rel="noreferrer">
+									<img
+										src="/admin/attendance/photo/{checkIn.id}"
+										alt="Check-in photo of {checkIn.name}"
+										loading="lazy"
+									/>
+								</a>
+							{:else if checkIn.note}
+								<div class="checkins__nophoto checkins__marked">
+									<strong>Marked present</strong>
+									<span>{checkIn.note}</span>
+								</div>
+							{:else}
+								<div class="checkins__nophoto">Photo removed after 30 days</div>
+							{/if}
+							<div class="checkins__info">
+								<a class="text-link" href="/admin/view_user/{checkIn.userId}">{checkIn.name}</a>
+								<span class="muted"
+									>{time(checkIn.time)}{checkIn.takenBy
+										? checkIn.note
+											? `, marked by ${checkIn.takenBy}`
+											: ` on ${checkIn.takenBy}'s device`
+										: ""}</span
+								>
 							</div>
-						{:else}
-							<div class="checkins__nophoto">Photo removed after 30 days</div>
-						{/if}
-						<div class="checkins__info">
-							<a class="text-link" href="/admin/view_user/{checkIn.userId}">{checkIn.name}</a>
-							<span class="muted"
-								>{time(checkIn.time)}{checkIn.takenBy
-									? checkIn.note
-										? `, marked by ${checkIn.takenBy}`
-										: ` on ${checkIn.takenBy}'s device`
-									: ""}</span
+							<form
+								method="POST"
+								action="?/remove_check_in"
+								use:enhance={async ({ cancel }) => {
+									const ok = await confirmDialog({
+										title: "Remove check-in?",
+										body: `${checkIn.name} will show as not checked in to this meeting.`,
+										confirmLabel: "Remove check-in",
+										danger: true
+									});
+									if (!ok) cancel();
+								}}
 							>
-						</div>
-						<form
-							method="POST"
-							action="?/remove_check_in"
-							use:enhance={async ({ cancel }) => {
-								const ok = await confirmDialog({
-									title: "Remove check-in?",
-									body: `${checkIn.name} will show as not checked in to this meeting.`,
-									confirmLabel: "Remove check-in",
-									danger: true
-								});
-								if (!ok) cancel();
-							}}
-						>
-							<input type="hidden" name="id" value={checkIn.id} />
-							<button class="btn btn-sm" type="submit">Remove</button>
-						</form>
-					</li>
-				{/each}
-			</ul>
-		{/if}
+								<input type="hidden" name="id" value={checkIn.id} />
+								<button class="btn btn-sm" type="submit">Remove</button>
+							</form>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</details>
 	</section>
 
 	<section class="panel">
@@ -445,7 +447,6 @@
 		gap: 0.5rem;
 		align-content: start;
 	}
-	.checkins img,
 	.checkins__marked {
 		display: grid !important;
 		align-content: center;
@@ -464,7 +465,7 @@
 	.tools__row {
 		margin-top: 0.75rem;
 	}
-	.mark {
+	.present-form {
 		display: grid;
 		gap: 0.6rem;
 		max-width: 32rem;
@@ -472,31 +473,31 @@
 		padding-top: 1rem;
 		border-top: 1px solid var(--line);
 	}
-	.mark h3 {
+	.present-form h3 {
 		margin: 0;
 		font-size: var(--text-md);
 	}
-	.mark label {
+	.present-form label {
 		display: grid;
 		gap: 0.3rem;
 	}
-	.mark > button {
+	.present-form > button {
 		justify-self: start;
 	}
-	.mark__picked {
+	.present-form__picked {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		margin: 0;
 	}
-	.mark__results {
+	.present-form__results {
 		display: grid;
 		gap: 0.3rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
-	.mark__results button {
+	.present-form__results button {
 		width: 100%;
 		padding: 0.55rem 0.75rem;
 		border: 1px solid var(--line);
@@ -507,10 +508,11 @@
 		text-align: left;
 		cursor: pointer;
 	}
-	.mark__results button:hover,
-	.mark__results button:focus-visible {
+	.present-form__results button:hover,
+	.present-form__results button:focus-visible {
 		border-color: var(--seal, var(--ink));
 	}
+	.checkins img,
 	.checkins__nophoto {
 		display: grid;
 		place-items: center;
@@ -522,6 +524,32 @@
 		color: var(--muted);
 		font-size: var(--text-xs);
 		text-align: center;
+	}
+	.collapse > summary {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		list-style: none;
+		cursor: pointer;
+	}
+	.collapse > summary::-webkit-details-marker {
+		display: none;
+	}
+	.collapse > summary h2 {
+		margin: 0;
+	}
+	/* Chevron that turns when the list opens. */
+	.collapse > summary::before {
+		content: "";
+		width: 0.55rem;
+		height: 0.55rem;
+		border-right: 2px solid var(--muted);
+		border-bottom: 2px solid var(--muted);
+		transform: rotate(-45deg);
+		transition: transform var(--dur-2, 0.15s) ease;
+	}
+	.collapse[open] > summary::before {
+		transform: rotate(45deg);
 	}
 	.checkins__info {
 		display: grid;
