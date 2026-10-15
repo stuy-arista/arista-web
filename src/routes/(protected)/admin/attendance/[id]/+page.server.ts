@@ -52,6 +52,7 @@ export const load = (async ({ locals, params, url }) => {
 			name: nameOf.get(checkIn.user) ?? "Former member",
 			time: checkIn.created as string,
 			hasPhoto: Boolean(checkIn.photo),
+			note: (checkIn.note as string) ?? "",
 			takenBy: takers.find((taker) => taker.id === checkIn.takenBy)?.name ?? ""
 		})),
 		absent: members
@@ -65,6 +66,40 @@ export const load = (async ({ locals, params, url }) => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
+	// Admins only: mark a member present without a photo, with an optional note
+	// (forgot their phone, left early, excused). Works any time.
+	mark_present: async ({ locals, params, request }) => {
+		if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can mark people present.");
+		const form = await request.formData();
+		const user = String(form.get("user") ?? "");
+		const note = String(form.get("note") ?? "")
+			.trim()
+			.slice(0, 300);
+		if (!user) return fail(400, { markError: "Pick a member first." });
+		try {
+			await locals.pb
+				.collection("attendance")
+				.create(
+					{
+						meeting: params.id,
+						user,
+						takenBy: locals.user?.id,
+						note: note || "Marked present by an admin"
+					},
+					{ requestKey: null }
+				);
+		} catch (createError) {
+			const details = (createError as { response?: { data?: Record<string, { code?: string }> } })
+				.response?.data;
+			if (
+				details?.meeting?.code === "validation_not_unique" ||
+				details?.user?.code === "validation_not_unique"
+			)
+				return fail(400, { markError: "They're already checked in to this meeting." });
+			return fail(400, { markError: "Couldn't mark them present. Try again." });
+		}
+		return { marked: true };
+	},
 	update_meeting: async ({ locals, params, request }) => {
 		if (!isAdmin(locals.user as RecievedUser)) error(403, "Only admins can edit meetings.");
 		const form = await request.formData();

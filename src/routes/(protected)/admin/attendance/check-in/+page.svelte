@@ -103,9 +103,9 @@
 <svelte:head><title>Check-in | ARISTA</title></svelte:head>
 
 <main class="page kiosk">
-	<a class="back" href="/admin/attendance">
+	<a class="back" href={data.chosen ? `/admin/attendance/${meetingId}` : "/admin/attendance"}>
 		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
-		Attendance
+		{data.chosen ? "Meeting" : "Attendance"}
 	</a>
 	{#if !data.openMeetings.length}
 		<section class="panel kiosk__card">
@@ -128,6 +128,11 @@
 				<p class="kiosk__meeting">{meeting?.name}</p>
 			{/if}
 			<h1>Check in</h1>
+			{#if data.outsideWindow}
+				<p class="kiosk__note">
+					Check-in for this meeting isn't open right now. As an admin you can still check people in.
+				</p>
+			{/if}
 		</header>
 
 		{#if step === "search"}
@@ -236,6 +241,11 @@
 		font-family: var(--font-display);
 		font-size: clamp(2rem, 6vw, 2.75rem);
 		line-height: 1.1;
+	}
+	.kiosk__note {
+		margin: 0.5rem 0 0;
+		color: var(--muted);
+		font-size: var(--text-sm);
 	}
 	.kiosk__meeting {
 		margin: 0 0 0.25rem;

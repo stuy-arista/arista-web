@@ -9,6 +9,29 @@
 	let { data }: { data: PageData } = $props();
 	let showAbsent = $state(false);
 	let editing = $state(false);
+	const markResult = $derived((page.form ?? {}) as { markError?: string });
+
+	// Mark present: find a member through the same search the check-in devices use.
+	type Member = { id: string; name: string; graduationYear: number };
+	let query = $state("");
+	let results = $state<Member[]>([]);
+	let picked = $state<Member | null>(null);
+	let note = $state("");
+	let searchTimer: ReturnType<typeof setTimeout> | undefined;
+	function search(value: string) {
+		query = value;
+		clearTimeout(searchTimer);
+		const q = value.trim();
+		if (q.length < 2) {
+			results = [];
+			return;
+		}
+		searchTimer = setTimeout(async () => {
+			const response = await fetch(`/admin/attendance/check-in/members?q=${encodeURIComponent(q)}`);
+			const found: Member[] = response.ok ? await response.json() : [];
+			if (q === query.trim()) results = found;
+		}, 250);
+	}
 	const editResult = $derived((page.form ?? {}) as { editError?: string });
 
 	// "2026-10-15T15:30" in the viewer's time zone, for datetime-local inputs.
@@ -150,6 +173,77 @@
 		</section>
 	{/if}
 
+	<section class="panel tools">
+		<h2 class="section-title">Check someone in yourself</h2>
+		<p class="muted">
+			Works any time, even before check-in opens or after it closes: for someone who forgot their
+			phone or has to leave early.
+		</p>
+		<div class="tools__row">
+			<a class="btn" href="/admin/attendance/check-in?meeting={data.meeting.id}"
+				>Check people in on this device</a
+			>
+		</div>
+		<form
+			method="POST"
+			action="?/mark_present"
+			class="mark"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update({ reset: false });
+					if (result.type === "success") {
+						picked = null;
+						query = "";
+						results = [];
+						note = "";
+					}
+				}}
+		>
+			<h3>Mark present without a photo</h3>
+			{#if picked}
+				<p class="mark__picked">
+					<strong>{picked.name}</strong>
+					<button class="btn btn-sm btn-ghost" type="button" onclick={() => (picked = null)}
+						>Change</button
+					>
+				</p>
+				<input type="hidden" name="user" value={picked.id} />
+				<label>
+					<span class="field-label">Note <span class="muted">(optional)</span></span>
+					<input
+						name="note"
+						bind:value={note}
+						maxlength="300"
+						placeholder="Forgot phone, left early for a doctor's appointment"
+					/>
+				</label>
+				<button class="btn btn-primary" type="submit">Mark present</button>
+			{:else}
+				<label>
+					<span class="field-label">Find a member by name or OSIS</span>
+					<input
+						value={query}
+						oninput={(event) => search(event.currentTarget.value)}
+						autocomplete="off"
+						placeholder="Jane Doe or 123456789"
+					/>
+				</label>
+				{#if results.length}
+					<ul class="mark__results">
+						{#each results as person (person.id)}
+							<li>
+								<button type="button" onclick={() => (picked = person)}>
+									{person.name} <span class="muted">Class of {person.graduationYear}</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			{/if}
+			{#if markResult.markError}<p class="field-error">{markResult.markError}</p>{/if}
+		</form>
+	</section>
+
 	<section class="panel">
 		<h2 class="section-title">Checked in</h2>
 		{#if data.checkIns.length === 0}
@@ -166,6 +260,11 @@
 									loading="lazy"
 								/>
 							</a>
+						{:else if checkIn.note}
+							<div class="checkins__nophoto checkins__marked">
+								<strong>Marked present</strong>
+								<span>{checkIn.note}</span>
+							</div>
 						{:else}
 							<div class="checkins__nophoto">Photo removed after 30 days</div>
 						{/if}
@@ -173,7 +272,9 @@
 							<a class="text-link" href="/admin/view_user/{checkIn.userId}">{checkIn.name}</a>
 							<span class="muted"
 								>{time(checkIn.time)}{checkIn.takenBy
-									? ` on ${checkIn.takenBy}'s device`
+									? checkIn.note
+										? `, marked by ${checkIn.takenBy}`
+										: ` on ${checkIn.takenBy}'s device`
 									: ""}</span
 							>
 						</div>
@@ -345,6 +446,71 @@
 		align-content: start;
 	}
 	.checkins img,
+	.checkins__marked {
+		display: grid !important;
+		align-content: center;
+		gap: 0.3rem;
+		padding: 0.75rem;
+		border: 1px dashed var(--line-strong, var(--line));
+		color: var(--ink) !important;
+		font-size: var(--text-sm) !important;
+	}
+	.checkins__marked span {
+		color: var(--muted);
+	}
+	.tools p {
+		margin: 0.3rem 0 0;
+	}
+	.tools__row {
+		margin-top: 0.75rem;
+	}
+	.mark {
+		display: grid;
+		gap: 0.6rem;
+		max-width: 32rem;
+		margin-top: 1.25rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--line);
+	}
+	.mark h3 {
+		margin: 0;
+		font-size: var(--text-md);
+	}
+	.mark label {
+		display: grid;
+		gap: 0.3rem;
+	}
+	.mark > button {
+		justify-self: start;
+	}
+	.mark__picked {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+	}
+	.mark__results {
+		display: grid;
+		gap: 0.3rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.mark__results button {
+		width: 100%;
+		padding: 0.55rem 0.75rem;
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		background: var(--surface);
+		color: var(--ink);
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+	.mark__results button:hover,
+	.mark__results button:focus-visible {
+		border-color: var(--seal, var(--ink));
+	}
 	.checkins__nophoto {
 		display: grid;
 		place-items: center;

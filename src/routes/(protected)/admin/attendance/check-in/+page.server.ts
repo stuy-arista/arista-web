@@ -1,16 +1,40 @@
 import { fail } from "@sveltejs/kit";
+import { isAdmin } from "$lib/adminAccess";
+import type { RecievedUser } from "$lib/db_types";
 import { openNowFilter, toMeeting } from "$lib/server/attendance";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load = (async ({ locals }) => ({
-	openMeetings: (
-		await locals.pb.collection("meetings").getFullList({
-			filter: `${openNowFilter()} && mode != "self"`,
-			sort: "opensAt",
-			requestKey: null
-		})
-	).map(toMeeting)
-})) satisfies PageServerLoad;
+export const load = (async ({ locals, url }) => {
+	const admin = isAdmin(locals.user as RecievedUser);
+	// Admins can run check-in for one particular meeting from its page: a QR
+	// meeting (someone forgot their phone), or outside its window (someone
+	// leaving early or arriving late).
+	const chosen = url.searchParams.get("meeting");
+	if (admin && chosen) {
+		try {
+			const meeting = toMeeting(
+				await locals.pb.collection("meetings").getOne(chosen, { requestKey: null })
+			);
+			const now = Date.now();
+			const outsideWindow = now < Date.parse(meeting.opensAt) || now > Date.parse(meeting.closesAt);
+			return { openMeetings: [meeting], outsideWindow, chosen: true };
+		} catch {
+			// Fall through to the usual list.
+		}
+	}
+	return {
+		openMeetings: (
+			await locals.pb.collection("meetings").getFullList({
+				// Device accounts only see device meetings; admins see QR ones too.
+				filter: admin ? openNowFilter() : `${openNowFilter()} && mode != "self"`,
+				sort: "opensAt",
+				requestKey: null
+			})
+		).map(toMeeting),
+		outsideWindow: false,
+		chosen: false
+	};
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	check_in: async ({ locals, request }) => {
