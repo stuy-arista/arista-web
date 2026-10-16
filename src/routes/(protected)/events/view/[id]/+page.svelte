@@ -216,8 +216,7 @@
 						{calculateEventCredits(data.event)} event credit{calculateEventCredits(data.event) === 1
 							? ""
 							: "s"}
-						{#if !data.event.creditsOverride && data.event.multiplier !== 1}<br /><span
-								>{data.event.multiplier}× multiplier</span
+						{#if data.event.multiplier !== 1}<br /><span>{data.event.multiplier}× multiplier</span
 							>{/if}
 					</dd>
 				</div>

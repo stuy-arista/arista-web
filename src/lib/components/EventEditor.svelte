@@ -91,13 +91,6 @@
 		inputmode="numeric"
 	/>
 	<InputField form={formObj} field="multiplier" label="Credit multiplier" inputmode="numeric" />
-	<InputField
-		form={formObj}
-		field="creditsOverride"
-		label="Credits (optional)"
-		inputmode="decimal"
-		hint="Leave at 0 to use the event's length × multiplier. Set a number to give exactly that many credits."
-	/>
 	<div class="editor__field">
 		<input type="hidden" name="start_time" value={toIsoValue($form.start_time)} />
 		<label for="start_time">Starts</label>

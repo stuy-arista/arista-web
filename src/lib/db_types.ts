@@ -44,8 +44,6 @@ export const EventSchema = z
 		start_time: z.coerce.date(),
 		end_time: z.coerce.date(),
 		multiplier: z.number().min(1).max(5).step(0.5).default(1),
-		// Fixed credits for the event; 0 means length × multiplier.
-		creditsOverride: z.number().min(0).max(100).default(0),
 		signupStatus: z.boolean().default(false),
 		// signed_up: z.string().array(),
 		isComplete: z.boolean().default(false)

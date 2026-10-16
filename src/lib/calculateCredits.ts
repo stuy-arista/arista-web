@@ -110,9 +110,6 @@ export function calculateRequiredCredits(
 }
 
 export function calculateEventCredits(event: RecievedEvent): number {
-	// A fixed amount set in the event editor wins over length × multiplier.
-	if (event.creditsOverride && event.creditsOverride > 0)
-		return roundCredits(event.creditsOverride);
 	const end_time = new Date(event.end_time.valueOf());
 	const start_time = new Date(event.start_time.valueOf());
 	end_time.setSeconds(0); // prevent issues with old events having non zero seconds
