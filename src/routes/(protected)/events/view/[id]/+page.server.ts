@@ -66,6 +66,10 @@ export const load = (async ({ params, locals }) => {
 		.collection("credits")
 		.getFullList({ filter: filterstr })) as RecievedCredit[];
 	const credited_user_ids = credited_users.map((v) => v.user);
+	// How much each volunteer got, shown next to "Credited".
+	const credited_amounts: Record<string, number> = Object.fromEntries(
+		credited_users.map((credit) => [credit.user, credit.credits])
+	);
 
 	// Server API:
 	const update_form = await superValidate(serialized_event_with_time, zod(EventSchema));
@@ -74,6 +78,7 @@ export const load = (async ({ params, locals }) => {
 		event: serialized_event_with_time,
 		is_current_user_signed_up,
 		credited_user_ids,
+		credited_amounts,
 		update_form: update_form
 	};
 }) satisfies PageServerLoad;
@@ -133,7 +138,6 @@ export const actions = {
 		const event = await locals.pb.collection<RecievedEvent>("events").getOne(event_id, {
 			requestKey: null
 		});
-		if (event.isComplete) return fail(400, { message: "Completed events cannot be credited." });
 		if (!event.signed_up.includes(user_id)) {
 			return fail(400, { message: "That person is not signed up for this event." });
 		}
@@ -168,7 +172,6 @@ export const actions = {
 		const event = await locals.pb.collection<RecievedEvent>("events").getOne(event_id, {
 			requestKey: null
 		});
-		if (event.isComplete) return fail(400, { message: "Completed events cannot be credited." });
 
 		const existingCredits = (await locals.pb.collection("credits").getFullList({
 			filter: `event="${event_id}"`,

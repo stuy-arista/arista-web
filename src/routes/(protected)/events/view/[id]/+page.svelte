@@ -265,7 +265,7 @@
 		</aside>
 	</div>
 
-	{#if isOnCommittee($currentUser, "events") && !data.event.isComplete}
+	{#if isOnCommittee($currentUser, "events")}
 		<section class="organizer" aria-labelledby="organizer-title">
 			<header>
 				<h2 id="organizer-title">Run this event</h2>
@@ -349,7 +349,9 @@
 											<td class="muted">{signed_up_user.email}</td>
 											<td>
 												{#if data.credited_user_ids.includes(signed_up_user.id)}
-													<span class="badge badge--success">Credited</span>
+													<span class="badge badge--success"
+														>Credited ({data.credited_amounts[signed_up_user.id]})</span
+													>
 												{:else}
 													<form
 														class="organizer__credit"
