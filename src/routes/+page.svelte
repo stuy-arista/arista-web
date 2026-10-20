@@ -142,26 +142,24 @@
 	<main class="home">
 		<section class="hero" aria-labelledby="home-title">
 			<picture>
-				<!-- A wide panorama. The hero follows its shape, so it shows edge to
-				     edge (at least 26rem tall, which can widen it past the screen). -->
 				<source
 					type="image/webp"
-					srcset="/images/open-house-2026-1000.webp 1000w, /images/open-house-2026-1730.webp 1730w, /images/open-house-2026-2400.webp 2400w, /images/open-house-2026-3600.webp 3600w"
-					sizes="(max-width: 700px) 100vw, max(100vw, 88.7rem)"
+					srcset="/images/members-2026-640.webp 640w, /images/members-2026-1000.webp 1000w, /images/members-2026-1730.webp 1730w"
+					sizes="100vw"
 				/>
 				<img
 					class="hero__photo"
-					src="/images/open-house-2026-2400.jpg"
-					srcset="/images/open-house-2026-1000.jpg 1000w, /images/open-house-2026-2400.jpg 2400w, /images/open-house-2026-3600.jpg 3600w"
-					sizes="(max-width: 700px) 100vw, max(100vw, 88.7rem)"
-					width="2400"
-					height="704"
-					alt="ARISTA members in ARISTA t-shirts, filling a Stuyvesant hallway for the Fall 2026 Open House."
+					src="/images/members-2026.jpg"
+					srcset="/images/members-2026-1000.jpg 1000w, /images/members-2026.jpg 1730w"
+					sizes="100vw"
+					width="1730"
+					height="763"
+					alt="A large group of ARISTA members in ARISTA t-shirts, gathered together in a Stuyvesant hallway."
 					fetchpriority="high"
 				/>
 			</picture>
 			<div class="hero__shade" aria-hidden="true"></div>
-			<p class="hero__credit">Photo by Anders Zernike</p>
+			<p class="hero__credit">Photo by Jerry Qiu</p>
 			<div class="hero__inner">
 				<div class="hero__text">
 					<h1 id="home-title">ARISTA</h1>
@@ -259,8 +257,7 @@
 		position: relative;
 		display: flex;
 		align-items: flex-end;
-		/* Sized to the panorama (3.41:1) so the whole group shows, not a close-up. */
-		min-height: max(26rem, calc(100vw / 3.41));
+		min-height: clamp(34rem, calc(100svh - 4.25rem), 60rem);
 		overflow: hidden;
 		background: #161616;
 		color: #fff;
@@ -271,7 +268,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: 50% 45%;
+		object-position: 50% 35%;
 		animation: settle 1400ms var(--ease-out) both;
 	}
 	.hero__shade {
@@ -662,32 +659,9 @@
 			padding-top: 0.3rem;
 		}
 	}
-	/* Phones: the whole photo across the top, the title and buttons below it. */
-	@media (max-width: 700px) {
-		.hero {
-			display: block;
-			min-height: 0;
-		}
-		.hero picture {
-			display: block;
-		}
+	@media (max-width: 560px) {
 		.hero__photo {
-			position: static;
-			height: auto;
-			aspect-ratio: 2400 / 704;
-			animation: none;
-		}
-		.hero__shade {
-			display: none;
-		}
-		.hero__credit {
-			position: static;
-			padding: 0.4rem var(--gutter, 1rem) 0;
-			text-align: right;
-			text-shadow: none;
-		}
-		.hero__inner {
-			padding: 1.25rem 0 2.5rem;
+			object-position: 40% 30%;
 		}
 	}
 </style>
