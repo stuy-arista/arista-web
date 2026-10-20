@@ -1,3 +1,4 @@
+import { officerName } from "$lib/displayName";
 import { error, fail } from "@sveltejs/kit";
 import { canAccess, isAdmin } from "$lib/adminAccess";
 import type { ExpandedTutoringSession, RecievedPublicUserData, RecievedUser } from "$lib/db_types";
@@ -67,7 +68,7 @@ export const load = (async ({ locals, url }) => {
 	const people = personIds.length
 		? ((await locals.pb.collection("publicUsers").getFullList({
 				filter: personIds.map((id) => `id="${id}"`).join(" || "),
-				fields: "id,name,email",
+				fields: "id,name,preferredName,email",
 				requestKey: null
 			})) as unknown as RecievedPublicUserData[])
 		: [];
@@ -76,9 +77,9 @@ export const load = (async ({ locals, url }) => {
 	return {
 		sessions: sessions.map((session) => ({
 			...session,
-			tutor_name: peopleById.get(session.tutor)?.name ?? "Unknown tutor",
+			tutor_name: officerName(peopleById.get(session.tutor)) || "Unknown tutor",
 			tutor_email: peopleById.get(session.tutor)?.email ?? "",
-			tutee_name: peopleById.get(session.tutee)?.name ?? "Unknown tutee",
+			tutee_name: officerName(peopleById.get(session.tutee)) || "Unknown tutee",
 			tutee_email: peopleById.get(session.tutee)?.email ?? "",
 			fraud_by_name: session.fraudBy ? (peopleById.get(session.fraudBy)?.name ?? "") : "",
 			flagged_by_name: session.flaggedBy ? (peopleById.get(session.flaggedBy)?.name ?? "") : ""

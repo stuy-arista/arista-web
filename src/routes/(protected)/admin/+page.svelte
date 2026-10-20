@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { officerName } from "$lib/displayName";
 	import calculateTotalStrikeWeight from "$lib/calculateTotalStrikeWeight";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
 	import type { RecievedUser } from "$lib/db_types";
@@ -326,7 +327,9 @@
 					<li class="panel">
 						<div class="people-cards__top">
 							<div>
-								<a class="people-cards__name" href={`/admin/view_user/${user.id}`}>{user.name}</a>
+								<a class="people-cards__name" href={`/admin/view_user/${user.id}`}
+									>{officerName(user)}</a
+								>
 								{#if user.bigSib}<span class="badge big-sib-badge">Big Sib</span>{/if}
 								<p>{user.email}</p>
 								<p>{[user.homeroom, user.graduationYear].filter(Boolean).join(" · ")}</p>
@@ -395,7 +398,9 @@
 						{#each users as user (user.id)}
 							<tr>
 								<td>
-									<a class="people-table__name" href={`/admin/view_user/${user.id}`}>{user.name}</a>
+									<a class="people-table__name" href={`/admin/view_user/${user.id}`}
+										>{officerName(user)}</a
+									>
 									{#if user.bigSib}<span class="badge big-sib-badge">Big Sib</span>{/if}
 								</td>
 								<td class="muted">{user.email}</td>

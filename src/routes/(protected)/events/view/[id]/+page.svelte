@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { officerName } from "$lib/displayName";
 	import { untrack } from "svelte";
 	import { preventDefault } from "svelte/legacy";
 
@@ -339,11 +340,9 @@
 									{#each data.event.expand.signed_up as signed_up_user}
 										<tr>
 											<td
-												><strong>{signed_up_user.name}</strong
+												><strong>{officerName(signed_up_user)}</strong
 												>{#if signed_up_user.id === ownerId}<span class="badge badge--organizer"
 														>Organizer</span
-													>{/if}{#if signed_up_user.preferredName}<span class="muted">
-														({signed_up_user.preferredName})</span
 													>{/if}</td
 											>
 											<td class="muted">{signed_up_user.email}</td>
@@ -415,10 +414,9 @@
 										<tr>
 											<td class="organizer__index muted">{index + 1}</td>
 											<td
-												><strong>{volunteer.name}</strong>{#if volunteer.id === ownerId}<span
-														class="badge badge--organizer">Organizer</span
-													>{/if}{#if volunteer.preferredName}<span class="muted">
-														({volunteer.preferredName})</span
+												><strong>{officerName(volunteer)}</strong
+												>{#if volunteer.id === ownerId}<span class="badge badge--organizer"
+														>Organizer</span
 													>{/if}</td
 											>
 											<td

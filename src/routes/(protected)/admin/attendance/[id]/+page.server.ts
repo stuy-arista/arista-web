@@ -1,3 +1,4 @@
+import { officerName } from "$lib/displayName";
 import { error, fail } from "@sveltejs/kit";
 import { isAdmin } from "$lib/adminAccess";
 import type { RecievedUser } from "$lib/db_types";
@@ -23,12 +24,17 @@ export const load = (async ({ locals, params, url }) => {
 		}),
 		locals.pb.collection("users").getFullList({
 			filter: "member=true",
-			fields: "id,name,graduationYear,bigSib",
+			fields: "id,name,preferredName,graduationYear,bigSib",
 			sort: "name",
 			requestKey: null
 		})
 	]);
-	const nameOf = new Map(members.map((member) => [member.id, member.name as string]));
+	const nameOf = new Map(
+		members.map((member) => [
+			member.id,
+			officerName({ name: member.name, preferredName: member.preferredName })
+		])
+	);
 	const bigSibs = new Set(members.filter((member) => member.bigSib).map((member) => member.id));
 	const present = new Set(checkIns.map((checkIn) => checkIn.user as string));
 	const takerIds = [
@@ -61,7 +67,7 @@ export const load = (async ({ locals, params, url }) => {
 			.filter((member) => !present.has(member.id))
 			.map((member) => ({
 				id: member.id,
-				name: member.name as string,
+				name: officerName({ name: member.name, preferredName: member.preferredName }),
 				graduationYear: member.graduationYear as number,
 				bigSib: Boolean(member.bigSib)
 			}))

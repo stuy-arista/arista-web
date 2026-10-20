@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { officerName } from "$lib/displayName";
 	import { untrack } from "svelte";
 	import type { PageData } from "./$types";
 	import { page } from "$app/state";
@@ -47,7 +48,7 @@
 	{#if full_user}
 		<header class="page-header">
 			<div>
-				<h1>{full_user.name}</h1>
+				<h1>{officerName(full_user)}</h1>
 				<p class="view-user__meta">
 					{#if full_user.email}<a class="text-link" href="mailto:{full_user.email}"
 							>{full_user.email}</a

@@ -5,7 +5,7 @@
 	import { page } from "$app/state";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
 	import { ADMIN_SECTIONS, ADMIN_SECTION_INFO, isAdmin } from "$lib/adminAccess";
-	import { displayName } from "$lib/displayName";
+	import { officerName } from "$lib/displayName";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -42,7 +42,7 @@
 {#snippet personRow(person: (typeof data.granted)[number])}
 	<li class="person">
 		<div class="person__who">
-			<strong>{displayName(person)}</strong>
+			<strong>{officerName(person)}</strong>
 			<span class="muted">{person.email}</span>
 		</div>
 		{#if isAdmin(person)}

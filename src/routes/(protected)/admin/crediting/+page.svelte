@@ -6,7 +6,7 @@
 	import { superForm } from "sveltekit-superforms";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
 	import MassCreditor from "$lib/components/MassCreditor.svelte";
-	import { displayName } from "$lib/displayName";
+	import { officerName } from "$lib/displayName";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -70,7 +70,7 @@
 				{#each data.results as person (person.id)}
 					<li>
 						<div class="matches__who">
-							<strong>{displayName(person)}</strong>
+							<strong>{officerName(person)}</strong>
 							<span class="muted"
 								>{[person.email, person.osis ? `OSIS ${person.osis}` : "", person.graduationYear]
 									.filter(Boolean)

@@ -1,3 +1,4 @@
+import { officerName } from "$lib/displayName";
 import { error } from "@sveltejs/kit";
 import { canAccess, isAdmin } from "$lib/adminAccess";
 import type {
@@ -34,7 +35,7 @@ export const load = (async ({ locals, params }) => {
 				.filter(Boolean)
 				.map((id) => `id="${id}"`)
 				.join(" || "),
-			fields: "id,name,email",
+			fields: "id,name,preferredName,email",
 			requestKey: null
 		}) as unknown as Promise<RecievedPublicUserData[]>,
 		locals.pb
@@ -52,12 +53,12 @@ export const load = (async ({ locals, params }) => {
 		session,
 		tutor: {
 			id: session.tutor,
-			name: person(session.tutor)?.name ?? "Unknown tutor",
+			name: officerName(person(session.tutor)) || "Unknown tutor",
 			email: person(session.tutor)?.email ?? ""
 		},
 		tutee: {
 			id: session.tutee,
-			name: person(session.tutee)?.name ?? "Unknown tutee",
+			name: officerName(person(session.tutee)) || "Unknown tutee",
 			email: person(session.tutee)?.email ?? ""
 		},
 		messages: messages.map((message) => ({
