@@ -142,24 +142,26 @@
 	<main class="home">
 		<section class="hero" aria-labelledby="home-title">
 			<picture>
+				<!-- A wide panorama: in the tall hero its rendered width follows the
+				     hero's height, so pick a source by that, not the viewport width. -->
 				<source
 					type="image/webp"
-					srcset="/images/members-2026-640.webp 640w, /images/members-2026-1000.webp 1000w, /images/members-2026-1730.webp 1730w"
-					sizes="100vw"
+					srcset="/images/open-house-2026-1000.webp 1000w, /images/open-house-2026-1730.webp 1730w, /images/open-house-2026-2400.webp 2400w, /images/open-house-2026-3600.webp 3600w"
+					sizes="(max-aspect-ratio: 341/100) calc(max(34rem, 100svh - 4.25rem) * 3.41), 100vw"
 				/>
 				<img
 					class="hero__photo"
-					src="/images/members-2026.jpg"
-					srcset="/images/members-2026-1000.jpg 1000w, /images/members-2026.jpg 1730w"
-					sizes="100vw"
-					width="1730"
-					height="763"
-					alt="A large group of ARISTA members in ARISTA t-shirts, gathered together in a Stuyvesant hallway."
+					src="/images/open-house-2026-2400.jpg"
+					srcset="/images/open-house-2026-1000.jpg 1000w, /images/open-house-2026-2400.jpg 2400w, /images/open-house-2026-3600.jpg 3600w"
+					sizes="(max-aspect-ratio: 341/100) calc(max(34rem, 100svh - 4.25rem) * 3.41), 100vw"
+					width="2400"
+					height="704"
+					alt="ARISTA members in ARISTA t-shirts, filling a Stuyvesant hallway for the Fall 2026 Open House."
 					fetchpriority="high"
 				/>
 			</picture>
 			<div class="hero__shade" aria-hidden="true"></div>
-			<p class="hero__credit">Photo by Jerry Qiu</p>
+			<p class="hero__credit">Photo by Anders Zernike</p>
 			<div class="hero__inner">
 				<div class="hero__text">
 					<h1 id="home-title">ARISTA</h1>
@@ -268,7 +270,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: 50% 35%;
+		object-position: 50% 45%;
 		animation: settle 1400ms var(--ease-out) both;
 	}
 	.hero__shade {
@@ -661,7 +663,7 @@
 	}
 	@media (max-width: 560px) {
 		.hero__photo {
-			object-position: 40% 30%;
+			object-position: 50% 45%;
 		}
 	}
 </style>

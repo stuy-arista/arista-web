@@ -5,9 +5,15 @@
 	// add them here; captions are optional.
 	const slides: Slide[] = [
 		{
+			src: "/images/open-house-2026-2400.jpg",
+			alt: "ARISTA members in ARISTA t-shirts, filling a Stuyvesant hallway for the Fall 2026 Open House.",
+			caption: "Fall 2026 Open House. Photo by Anders Zernike",
+			position: "50% 45%"
+		},
+		{
 			src: "/images/members-2026.jpg",
 			alt: "A large group of ARISTA members in ARISTA t-shirts, gathered together in a Stuyvesant hallway.",
-			caption: "ARISTA members, 2026",
+			caption: "ARISTA members, 2026. Photo by Jerry Qiu",
 			position: "50% 35%"
 		},
 		{
