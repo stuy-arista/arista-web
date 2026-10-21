@@ -3,6 +3,7 @@
 	import { afterNavigate, replaceState } from "$app/navigation";
 	import { page } from "$app/state";
 	import type { RecievedEvent } from "$lib/db_types";
+	import { calculateEventCredits } from "$lib/calculateCredits";
 
 	type CalendarState = {
 		month?: string | null;
@@ -307,6 +308,7 @@
 			{#if monthEvents.length}
 				<ul>
 					{#each monthEvents as event (event.id)}
+						{@const credits = calculateEventCredits(event)}
 						<li>
 							<a
 								href={"/events/view/" + event.id}
@@ -321,17 +323,34 @@
 								<div class="event-list__main">
 									<strong>{event.name}</strong>
 									<span>{eventTime(event)}{event.location ? `, ${event.location}` : ""}</span>
-								</div>
-								<div class="event-list__meta">
-									{#if event.place.trim()}
-										<span class="place-tag place--{placeClass(event.place)}"
-											>{placeLabel(event.place)}</span
+									<div class="event-list__meta">
+										{#if event.place.trim()}
+											<span class="place-tag place--{placeClass(event.place)}"
+												>{placeLabel(event.place)}</span
+											>
+										{/if}
+										<span class="badge state--{eventState(event)}">{stateLabel(event)}</span>
+										<span
+											class="event-list__count"
+											aria-label="{event.signed_up
+												.length} of {event.intendedVolunteers} volunteers signed up"
 										>
+											<svg viewBox="0 0 24 24" aria-hidden="true"
+												><circle cx="9" cy="8" r="3.5" /><path
+													d="M2.5 20v-.5a5.5 5.5 0 0 1 11 0v.5"
+												/><path
+													d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a5.5 5.5 0 0 1 3.5 5.3v.5"
+												/></svg
+											>{event.signed_up.length}/{event.intendedVolunteers} signed up
+										</span>
+									</div>
+								</div>
+								<!-- Credits mirror the date tile on the left. -->
+								<div class="event-list__credits" class:is-empty={credits <= 0}>
+									{#if credits > 0}
+										<b>{credits}</b>
+										<span>{credits === 1 ? "credit" : "credits"}</span>
 									{/if}
-									<span class="badge state--{eventState(event)}">{stateLabel(event)}</span>
-									<span class="event-list__count"
-										>{event.signed_up.length} of {event.intendedVolunteers}</span
-									>
 								</div>
 							</a>
 						</li>
@@ -418,19 +437,37 @@
 				{#if selectedEvents.length}
 					<ul>
 						{#each selectedEvents as event (event.id)}
+							{@const credits = calculateEventCredits(event)}
 							<li>
 								<a
 									href={"/events/view/" + event.id}
 									onclick={saveReturnPosition}
 									class="place--{placeClass(event.place)}"
+									class:is-muted={eventState(event) !== "open"}
 								>
-									<strong>{event.name}</strong>
-									<span>{eventTime(event)}</span>
-									{#if event.location}<span>{event.location}</span>{/if}
-									<span class="day-panel__meta">
-										<span class="badge state--{eventState(event)}">{stateLabel(event)}</span>
-										{event.signed_up.length} of {event.intendedVolunteers} signed up
-									</span>
+									<div class="day-panel__info">
+										<strong>{event.name}</strong>
+										<span>{eventTime(event)}</span>
+										{#if event.location}<span>{event.location}</span>{/if}
+										<span class="day-panel__meta">
+											<span class="badge state--{eventState(event)}">{stateLabel(event)}</span>
+											<span class="event-list__count"
+												><svg viewBox="0 0 24 24" aria-hidden="true"
+													><circle cx="9" cy="8" r="3.5" /><path
+														d="M2.5 20v-.5a5.5 5.5 0 0 1 11 0v.5"
+													/><path
+														d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a5.5 5.5 0 0 1 3.5 5.3v.5"
+													/></svg
+												>{event.signed_up.length}/{event.intendedVolunteers} signed up</span
+											>
+										</span>
+									</div>
+									{#if credits > 0}
+										<div class="event-list__credits">
+											<b>{credits}</b>
+											<span>{credits === 1 ? "credit" : "credits"}</span>
+										</div>
+									{/if}
 								</a>
 							</li>
 						{/each}
@@ -812,7 +849,9 @@
 	}
 	.day-panel a {
 		display: grid;
-		gap: 0.15rem;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+		gap: 0.75rem;
 		padding: 0.75rem 0.85rem;
 		border-left: 3px solid var(--place);
 		border-radius: var(--radius-field);
@@ -824,11 +863,16 @@
 	.day-panel a:hover {
 		background: var(--wash);
 	}
-	.day-panel a strong {
+	.day-panel__info strong {
 		font-weight: 650;
 		line-height: 1.35;
 	}
-	.day-panel a > span {
+	.day-panel__info {
+		display: grid;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+	.day-panel__info > span {
 		color: var(--muted);
 		font-size: var(--text-sm);
 	}
@@ -914,13 +958,13 @@
 		gap: 0.15rem;
 		min-width: 0;
 	}
-	.event-list__main strong {
+	.event-list__main > strong {
 		overflow: hidden;
 		font-weight: 600;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.event-list__main span {
+	.event-list__main > span {
 		overflow: hidden;
 		color: var(--muted);
 		font-size: var(--text-sm);
@@ -931,8 +975,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		justify-content: end;
-		gap: 0.4rem;
+		gap: 0.3rem 0.6rem;
+		margin-top: 0.3rem;
+		color: var(--muted);
+		font-size: var(--text-xs);
 	}
 	.place-tag {
 		display: inline-flex;
@@ -949,12 +995,52 @@
 		background: var(--place);
 		content: "";
 	}
+	/* Credits tile: same size and shape as the date tile, at the other end. */
+	.event-list__credits {
+		display: grid;
+		place-items: center;
+		align-content: center;
+		width: 4rem;
+		height: 3.25rem;
+		border-radius: var(--radius-field);
+		background: var(--flame-soft);
+		color: var(--flame-text);
+		line-height: 1;
+	}
+	.event-list__credits b {
+		font-family: var(--font-display);
+		font-size: 1.35rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.event-list__credits span {
+		margin-top: 0.2rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+	}
+	.event-list__credits.is-empty {
+		background: none;
+	}
+	a.is-muted .event-list__credits:not(.is-empty) {
+		background: var(--surface-sunken);
+		color: var(--muted);
+	}
 	.event-list__count {
-		min-width: 4.5rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
 		color: var(--muted);
 		font-size: var(--text-xs);
-		text-align: right;
+		font-weight: 600;
 		font-variant-numeric: tabular-nums;
+	}
+	.event-list__count svg {
+		width: 0.95rem;
+		height: 0.95rem;
+		fill: none;
+		stroke: currentcolor;
+		stroke-width: 1.8;
+		stroke-linecap: round;
 	}
 
 	@media (max-width: 980px) {
@@ -984,16 +1070,14 @@
 			font-size: 0.625rem;
 		}
 		.event-list a {
-			grid-template-columns: 3rem minmax(0, 1fr);
+			grid-template-columns: 3rem minmax(0, 1fr) auto;
 			gap: 0.75rem;
 		}
-		.event-list__meta {
-			grid-column: 2;
-			justify-content: start;
+		.event-list__credits {
+			width: 3.25rem;
 		}
-		.event-list__count {
-			min-width: 0;
-			text-align: left;
+		.event-list__credits.is-empty {
+			width: 0;
 		}
 	}
 </style>
