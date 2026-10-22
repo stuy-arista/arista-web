@@ -269,8 +269,8 @@
 				<section class="panel" aria-labelledby="emails-title">
 					<h2 id="emails-title" class="section-title appearance__title">Message emails</h2>
 					<p class="muted emails__hint">
-						If a tutoring message sits unread for 3 hours, we email you. At most once a day per
-						session.
+						If a tutoring message sits unread for 30 minutes, we email you. Each message is only
+						emailed once, and nothing is sent if you've already read it.
 					</p>
 					<form
 						method="POST"
