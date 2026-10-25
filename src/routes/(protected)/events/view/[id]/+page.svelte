@@ -83,14 +83,21 @@
 		const formEl = event.target as HTMLFormElement;
 		const data = new FormData(formEl);
 
+		data.set("user_id", user_id);
 		const response = await fetch(formEl.action, {
 			method: "POST",
-			body: JSON.stringify({
-				user_id: user_id,
-				credits: data.get("credits")
-			})
+			body: data,
+			headers: { "x-sveltekit-action": "true" }
 		});
-		if (!response.ok) return;
+		const result = deserialize(await response.text());
+		if (result.type !== "success") {
+			creditAllFeedback =
+				result.type === "failure"
+					? String((result.data as { message?: string })?.message ?? "Couldn't add that credit.")
+					: "Couldn't add that credit. Try again.";
+			return;
+		}
+		creditAllFeedback = "";
 
 		// reset form
 		formEl.reset();
@@ -112,13 +119,22 @@
 				if (!approved || isCreditingAll) return;
 				isCreditingAll = true;
 				try {
+					const body = new FormData();
+					body.set("credits", credits);
 					const response = await fetch(`/events/view/${data.event.id}?/creditAllVolunteers`, {
 						method: "POST",
-						body: JSON.stringify({ credits }),
-						headers: { "content-type": "application/json" }
+						body,
+						headers: { "x-sveltekit-action": "true" }
 					});
-					if (!response.ok) {
-						creditAllFeedback = "Could not credit volunteers. Check the amount and try again.";
+					const result = deserialize(await response.text());
+					if (result.type !== "success") {
+						creditAllFeedback =
+							result.type === "failure"
+								? String(
+										(result.data as { message?: string })?.message ??
+											"Could not credit volunteers. Check the amount and try again."
+									)
+								: "Could not credit volunteers. Check the amount and try again.";
 						return;
 					}
 					await invalidateAll();

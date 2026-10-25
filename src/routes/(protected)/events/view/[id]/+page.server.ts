@@ -128,9 +128,10 @@ export const actions = {
 	},
 	giveCreditToUser: async ({ request, locals, params }) => {
 		await ensureEventCommitteeMember(locals);
-		const json = await request.json().catch(() => ({}));
-		const user_id = typeof json.user_id === "string" ? json.user_id : "";
-		const credits = parseCreditAmount(json.credits);
+		// Form data: SvelteKit only accepts form-encoded bodies for actions.
+		const form = await request.formData();
+		const user_id = String(form.get("user_id") ?? "");
+		const credits = parseCreditAmount(form.get("credits"));
 		const event_id = params.id;
 		if (!user_id || credits === null)
 			return fail(400, { message: "Enter a credit amount from 0.01 to 100." });
@@ -164,8 +165,7 @@ export const actions = {
 	},
 	creditAllVolunteers: async ({ request, locals, params }) => {
 		await ensureEventCommitteeMember(locals);
-		const json = await request.json().catch(() => ({}));
-		const credits = parseCreditAmount(json.credits);
+		const credits = parseCreditAmount((await request.formData()).get("credits"));
 		if (credits === null) return fail(400, { message: "Enter a credit amount from 0.01 to 100." });
 
 		const event_id = params.id;
