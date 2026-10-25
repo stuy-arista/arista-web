@@ -282,7 +282,7 @@
 		</aside>
 	</div>
 
-	{#if isOnCommittee($currentUser, "events")}
+	{#if isOnCommittee(data.user ?? undefined, "events")}
 		<section class="organizer" aria-labelledby="organizer-title">
 			<header>
 				<h2 id="organizer-title">Run this event</h2>
@@ -464,7 +464,7 @@
 				</form>
 			</details>
 
-			{#if $currentUser?.id === data.event.event_owner || isOnCommittee($currentUser, "admin")}
+			{#if data.user?.id === data.event.event_owner || isOnCommittee(data.user ?? undefined, "admin")}
 				<div class="organizer__danger">
 					<div>
 						<h3>Delete this event</h3>

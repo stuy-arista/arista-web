@@ -13,7 +13,7 @@
 		publicThemePreference,
 		type PublicThemePreference
 	} from "$lib/theme";
-	import { navigating } from "$app/state";
+	import { navigating, updated } from "$app/state";
 	import { page } from "$app/state";
 	import { onMount, tick } from "svelte";
 	import { afterNavigate, beforeNavigate } from "$app/navigation";
@@ -56,6 +56,13 @@
 	// On Back/Forward the browser switches history entries before
 	// beforeNavigate runs, so save under the entry we were actually on.
 	let currentScrollKey = "";
+	// A new version was deployed while this tab was open: load the next page
+	// fresh instead of running the old code in this tab.
+	beforeNavigate(({ willUnload, to }) => {
+		if (updated.current && !willUnload && to?.url) {
+			location.href = to.url.href;
+		}
+	});
 	beforeNavigate(() => {
 		try {
 			if (currentScrollKey)

@@ -10,7 +10,10 @@ const config = {
 
 	kit: {
 		// Vercel's adapter produces the serverless build output used by this project.
-		adapter: adapter({ runtime: "nodejs24.x" })
+		adapter: adapter({ runtime: "nodejs24.x" }),
+		// Check for a new deploy every minute; the root layout then makes the next
+		// navigation a full page load, so open tabs don't keep running old code.
+		version: { pollInterval: 60_000 }
 	}
 };
 export default config;
