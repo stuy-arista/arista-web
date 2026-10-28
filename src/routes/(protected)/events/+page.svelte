@@ -17,7 +17,21 @@
 	let { data }: Props = $props();
 	const formObj = superForm(untrack(() => data.form));
 	let activeView = $state<"calendar" | "manage">("calendar");
-	const canManageEvents = $derived(isOnCommittee($currentUser, "events"));
+	// Server's view of the user, so this doesn't depend on browser-side state.
+	const canManageEvents = $derived(
+		isOnCommittee((page.data.user ?? $currentUser) || undefined, "events")
+	);
+
+	// Open the create form with the chosen day filled in (3:00 to 5:00 PM).
+	function createOn(day: Date) {
+		const start = new Date(day);
+		start.setHours(15, 0, 0, 0);
+		const end = new Date(day);
+		end.setHours(17, 0, 0, 0);
+		formObj.form.update((form) => ({ ...form, start_time: start, end_time: end }));
+		activeView = "manage";
+		document.querySelector(".events__tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+	}
 </script>
 
 <svelte:head><title>Events | ARISTA</title></svelte:head>
@@ -54,6 +68,7 @@
 		<section aria-label="ARISTA events calendar">
 			<EventsCalendar
 				events={data.events}
+				onCreate={canManageEvents ? createOn : undefined}
 				initialState={{
 					month: page.url.searchParams.get("month"),
 					view: page.url.searchParams.get("view"),

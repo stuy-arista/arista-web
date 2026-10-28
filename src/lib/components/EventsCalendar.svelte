@@ -16,9 +16,11 @@
 	interface Props {
 		events: RecievedEvent[];
 		initialState?: CalendarState;
+		/** Events committee: offer "Create an event on this day" under the selected day. */
+		onCreate?: (day: Date) => void;
 	}
 
-	let { events, initialState = {} }: Props = $props();
+	let { events, initialState = {}, onCreate }: Props = $props();
 	const returnPositionKey = "arista-events-return-position";
 	const monthPattern = /^(\d{4})-(\d{2})$/;
 
@@ -477,6 +479,13 @@
 						No events this day{openOnly || selectedPlace !== "All" ? " with these filters" : ""}.
 					</p>
 				{/if}
+				{#if onCreate}
+					<button
+						type="button"
+						class="btn btn-sm day-panel__create"
+						onclick={() => onCreate(selectedDay)}>Create an event on this day</button
+					>
+				{/if}
 			</aside>
 		</div>
 	{/if}
@@ -884,6 +893,9 @@
 		margin-top: 0.35rem;
 		color: var(--muted);
 		font-size: var(--text-xs) !important;
+	}
+	.day-panel__create {
+		margin-top: 0.85rem;
 	}
 	.day-panel__empty {
 		margin: 0.6rem 0 0;
