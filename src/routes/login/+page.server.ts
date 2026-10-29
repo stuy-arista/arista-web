@@ -6,7 +6,7 @@ import { zod4 as zod } from "sveltekit-superforms/adapters";
 import { getSafeRedirectTarget } from "$lib/safeRedirect";
 
 const LoginPageSchema = z.object({
-	email: z.string().email(),
+	email: z.string().trim().toLowerCase().email(),
 	password: z.string().min(6).max(64)
 });
 

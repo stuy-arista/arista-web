@@ -72,7 +72,8 @@ export const actions: Actions = {
 		} catch (error: unknown) {
 			const data = (error as { response?: { data?: Record<string, { code?: string }> } })?.response
 				?.data;
-			if (data?.email?.code === "validation_not_unique") {
+			const message = (error as { response?: { message?: string } })?.response?.message ?? "";
+			if (data?.email?.code === "validation_not_unique" || /already exists/i.test(message)) {
 				return handleError("An account with that email already exists. Try signing in.", form);
 			}
 			if (data && Object.keys(data).length > 0) {

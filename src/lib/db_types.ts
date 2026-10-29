@@ -16,7 +16,7 @@ export const CommitteesSchema = z.union([
 ]);
 
 export const UserSchema = z.object({
-	email: z.string().email(),
+	email: z.string().trim().toLowerCase().email(),
 	name: z.string().min(3).max(48),
 	preferredName: z.string().trim().max(32).optional(),
 	avatar: z.string().optional(),

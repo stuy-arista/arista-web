@@ -6,7 +6,7 @@ import { zod4 as zod } from "sveltekit-superforms/adapters";
 import handleError from "$lib/handleError";
 
 const ForgotPasswordSchema = z.object({
-	email: z.string().email()
+	email: z.string().trim().toLowerCase().email()
 });
 
 // Simple in-memory rate limiting
