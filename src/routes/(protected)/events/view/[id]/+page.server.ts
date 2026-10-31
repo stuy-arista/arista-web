@@ -71,6 +71,17 @@ export const load = (async ({ params, locals }) => {
 		credited_users.map((credit) => [credit.user, credit.credits])
 	);
 
+	// Who's running it, shown to everyone who can see the event.
+	const organizer = serialized_event.event_owner
+		? ((await locals.pb
+				.collection("publicUsers")
+				.getOne(serialized_event.event_owner, {
+					fields: "id,name,preferredName,email",
+					requestKey: null
+				})
+				.catch(() => null)) as unknown as RecievedPublicUserData | null)
+		: null;
+
 	// Server API:
 	const update_form = await superValidate(serialized_event_with_time, zod(EventSchema));
 
@@ -79,6 +90,7 @@ export const load = (async ({ params, locals }) => {
 		is_current_user_signed_up,
 		credited_user_ids,
 		credited_amounts,
+		organizer,
 		update_form: update_form
 	};
 }) satisfies PageServerLoad;

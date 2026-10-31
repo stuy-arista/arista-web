@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { officerName } from "$lib/displayName";
+	import { displayName, officerName } from "$lib/displayName";
 	import { untrack } from "svelte";
 	import { preventDefault } from "svelte/legacy";
 
@@ -227,6 +227,18 @@
 					<dt>Where</dt>
 					<dd>{data.event.location || "Location to be announced"}</dd>
 				</div>
+				{#if data.organizer}
+					<div>
+						<dt>Organizer</dt>
+						<dd>
+							{displayName(data.organizer)}
+							{#if data.organizer.email}<br /><a
+									class="text-link"
+									href={`mailto:${data.organizer.email}`}>{data.organizer.email}</a
+								>{/if}
+						</dd>
+					</div>
+				{/if}
 				<div>
 					<dt>Credit</dt>
 					<dd>
