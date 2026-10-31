@@ -227,6 +227,16 @@
 					<dt>Where</dt>
 					<dd>{data.event.location || "Location to be announced"}</dd>
 				</div>
+				<div>
+					<dt>Credit</dt>
+					<dd>
+						{calculateEventCredits(data.event)} event credit{calculateEventCredits(data.event) === 1
+							? ""
+							: "s"}
+						{#if data.event.multiplier !== 1}<br /><span>{data.event.multiplier}× multiplier</span
+							>{/if}
+					</dd>
+				</div>
 				{#if data.organizer}
 					<div>
 						<dt>Organizer</dt>
@@ -239,16 +249,6 @@
 						</dd>
 					</div>
 				{/if}
-				<div>
-					<dt>Credit</dt>
-					<dd>
-						{calculateEventCredits(data.event)} event credit{calculateEventCredits(data.event) === 1
-							? ""
-							: "s"}
-						{#if data.event.multiplier !== 1}<br /><span>{data.event.multiplier}× multiplier</span
-							>{/if}
-					</dd>
-				</div>
 			</dl>
 		</article>
 
@@ -556,9 +556,10 @@
 		line-height: 1.65;
 		white-space: pre-line;
 	}
+	/* Four details: one row when there's room, otherwise a tidy 2×2. */
 	.event__facts {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 1rem 2rem;
 		margin: 2rem 0 0;
 		padding-top: 1.5rem;
@@ -570,6 +571,7 @@
 		font-weight: 600;
 	}
 	.event__facts dd {
+		overflow-wrap: anywhere;
 		margin: 0.3rem 0 0;
 		font-weight: 600;
 		line-height: 1.45;
@@ -822,6 +824,11 @@
 		}
 		.event__signup {
 			position: static;
+		}
+	}
+	@media (max-width: 1100px) {
+		.event__facts {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 	@media (max-width: 640px) {
