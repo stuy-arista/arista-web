@@ -223,13 +223,23 @@ export const actions = {
 			error(401, "User is not a member of the events committee.");
 		}
 
-		await locals.pb.collection<RecievedEvent>("events").update(
-			event_id,
-			{
-				isComplete: true
-			},
-			{ requestKey: null }
-		);
+		try {
+			await locals.pb.collection<RecievedEvent>("events").update(
+				event_id,
+				{
+					isComplete: true
+				},
+				{ requestKey: null }
+			);
+		} catch (updateError) {
+			console.error(updateError);
+			const missing = (updateError as { status?: number }).status === 400;
+			return fail(400, {
+				completeError: missing
+					? "This event is missing required details. Fill them in under Edit event details, then try again."
+					: "Couldn't mark the event complete. Try again."
+			});
+		}
 	},
 	update_event: async ({ request, locals, params }) => {
 		const event_id = params.id;

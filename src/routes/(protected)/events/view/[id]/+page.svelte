@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { displayName, officerName } from "$lib/displayName";
-	import { untrack } from "svelte";
+	import { onDestroy, untrack } from "svelte";
+	import { fade } from "svelte/transition";
 	import { preventDefault } from "svelte/legacy";
 
 	import type { PageData } from "./$types";
@@ -47,6 +48,48 @@
 	const ownerId = $derived(data.event.event_owner);
 
 	let organizerView = $state<"credit" | "roster">("credit");
+
+	// Small celebration after marking the event complete.
+	let completedPopup = $state(false);
+	let completeError = $state("");
+	let completedTimer: ReturnType<typeof setTimeout> | undefined;
+	const confettiColors = ["#f2a93b", "#22397d", "#2e7d57", "#c0392b", "#7f9cf5", "#ffd479"];
+	let confetti = $state<
+		{
+			left: number;
+			delay: number;
+			duration: number;
+			drift: number;
+			spin: number;
+			color: string;
+			round: boolean;
+		}[]
+	>([]);
+	let confettiTimer: ReturnType<typeof setTimeout> | undefined;
+	function showCompletedPopup() {
+		confetti = Array.from({ length: 70 }, (_, index) => ({
+			left: Math.random() * 100,
+			delay: Math.random() * 0.5,
+			duration: 1.9 + Math.random() * 1.3,
+			drift: (Math.random() - 0.5) * 22,
+			spin: 360 + Math.random() * 900,
+			color: confettiColors[index % confettiColors.length],
+			round: index % 4 === 0
+		}));
+		clearTimeout(confettiTimer);
+		confettiTimer = setTimeout(() => (confetti = []), 3800);
+		completedPopup = true;
+		clearTimeout(completedTimer);
+		completedTimer = setTimeout(() => (completedPopup = false), 5000);
+	}
+	function closeCompletedPopup() {
+		clearTimeout(completedTimer);
+		completedPopup = false;
+	}
+	onDestroy(() => {
+		clearTimeout(completedTimer);
+		clearTimeout(confettiTimer);
+	});
 	let rosterCopyMessage = $state("");
 	let rosterCopyTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -463,11 +506,26 @@
 				</div>
 			{/if}
 
-			<div class="organizer__actions">
-				<form method="POST" action="?/mark_event_as_completed" use:enhance>
-					<button type="submit" class="btn btn-primary">Mark event complete</button>
-				</form>
-			</div>
+			{#if !data.event.isComplete}
+				<div class="organizer__actions">
+					<form
+						method="POST"
+						action="?/mark_event_as_completed"
+						use:enhance={() =>
+							async ({ result, update }) => {
+								await update();
+								completeError =
+									result.type === "failure"
+										? String(result.data?.completeError ?? "Couldn't mark the event complete.")
+										: "";
+								if (result.type === "success") showCompletedPopup();
+							}}
+					>
+						<button type="submit" class="btn btn-primary">Mark event complete</button>
+						{#if completeError}<p class="field-error" role="alert">{completeError}</p>{/if}
+					</form>
+				</div>
+			{/if}
 
 			<details class="organizer__edit">
 				<summary>Edit event details</summary>
@@ -488,6 +546,50 @@
 				</div>
 			{/if}
 		</section>
+	{/if}
+	{#if confetti.length}
+		<div class="completed-confetti" aria-hidden="true">
+			{#each confetti as piece}
+				<i
+					class:round={piece.round}
+					style:left="{piece.left}%"
+					style:background={piece.color}
+					style:animation-delay="{piece.delay}s"
+					style:animation-duration="{piece.duration}s"
+					style:--drift="{piece.drift}vw"
+					style:--spin="{piece.spin}deg"
+				></i>
+			{/each}
+		</div>
+	{/if}
+	{#if completedPopup}
+		<div class="completed-popup" role="status" transition:fade={{ duration: 200 }}>
+			<span class="completed-popup__mark" aria-hidden="true">
+				<svg viewBox="0 0 40 40">
+					<circle cx="20" cy="20" r="17" />
+					<path d="m12.5 20.5 5.2 5.2 10-10.4" />
+				</svg>
+			</span>
+			<div class="completed-popup__text">
+				<strong>Event marked complete</strong>
+				<span>
+					{#if !data.event.signed_up.length}
+						Thanks for running it.
+					{:else if uncreditedVolunteerCount === 0}
+						Every volunteer is credited.
+					{:else}
+						{uncreditedVolunteerCount}
+						{uncreditedVolunteerCount === 1 ? "volunteer still needs" : "volunteers still need"} credits.
+					{/if}
+				</span>
+			</div>
+			<button
+				type="button"
+				class="completed-popup__close"
+				aria-label="Dismiss"
+				onclick={closeCompletedPopup}>×</button
+			>
+		</div>
 	{/if}
 </main>
 
@@ -834,6 +936,138 @@
 	@media (max-width: 640px) {
 		.event__facts {
 			grid-template-columns: 1fr;
+		}
+	}
+	.completed-popup {
+		position: fixed;
+		bottom: max(1.5rem, env(safe-area-inset-bottom));
+		left: 50%;
+		z-index: 60;
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		padding: 0.8rem 0.75rem 0.8rem 1rem;
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--surface);
+		box-shadow: 0 12px 36px rgb(22 39 90 / 22%);
+		transform: translateX(-50%);
+		animation: completed-rise 420ms var(--ease-out) both;
+	}
+	.completed-popup__mark {
+		position: relative;
+		flex: none;
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+	.completed-popup__mark svg {
+		position: relative;
+		display: block;
+		width: 100%;
+		height: 100%;
+		fill: none;
+		stroke: var(--success);
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 3;
+	}
+	.completed-popup__mark circle {
+		stroke-dasharray: 107;
+		animation: completed-draw 500ms var(--ease-out) 100ms both;
+		--draw-from: 107;
+	}
+	.completed-popup__mark path {
+		stroke-dasharray: 28;
+		animation: completed-draw 300ms var(--ease-out) 480ms both;
+		--draw-from: 28;
+	}
+	.completed-confetti {
+		position: fixed;
+		inset: 0;
+		z-index: 59;
+		overflow: hidden;
+		pointer-events: none;
+	}
+	.completed-confetti i {
+		position: absolute;
+		top: -1.5rem;
+		width: 0.55rem;
+		height: 0.9rem;
+		border-radius: 2px;
+		animation-name: completed-confetti-fall;
+		animation-timing-function: cubic-bezier(0.25, 0.6, 0.5, 1);
+		animation-fill-mode: both;
+	}
+	.completed-confetti i.round {
+		width: 0.6rem;
+		height: 0.6rem;
+		border-radius: 50%;
+	}
+	.completed-popup__text {
+		display: grid;
+		gap: 0.1rem;
+		min-width: 0;
+	}
+	.completed-popup__text strong {
+		font-weight: 650;
+	}
+	.completed-popup__text span {
+		color: var(--muted);
+		font-size: var(--text-sm);
+	}
+	.completed-popup__close {
+		flex: none;
+		width: 2.25rem;
+		height: 2.25rem;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--muted);
+		font-size: 1.25rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.completed-popup__close:hover {
+		background: var(--wash);
+		color: var(--ink);
+	}
+	@keyframes completed-rise {
+		from {
+			opacity: 0;
+			transform: translate(-50%, 16px);
+		}
+	}
+	@keyframes completed-draw {
+		from {
+			stroke-dashoffset: var(--draw-from);
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes completed-confetti-fall {
+		0% {
+			opacity: 1;
+			transform: translate3d(0, 0, 0) rotate(0);
+		}
+		80% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin));
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.completed-popup,
+		.completed-popup__mark circle,
+		.completed-popup__mark path {
+			animation: none;
+		}
+		.completed-confetti {
+			display: none;
 		}
 	}
 </style>
