@@ -96,6 +96,12 @@ function body(preview: EventPreview) {
 	);
 }
 
+function timeLines(time: string) {
+	if (time.length <= 16) return [time];
+	const [start, end] = time.split(" to ");
+	return [start, `to ${end}`];
+}
+
 function stub(preview: EventPreview) {
 	const { weekday, month, day } = previewDateParts(preview);
 	return h(
@@ -115,7 +121,10 @@ function stub(preview: EventPreview) {
 			text(day, { size: 168, serif: true, lineHeight: 1, letterSpacing: -4, margin: "4px 0 2px" }),
 			text(weekday, { size: 28, color: SLATE }),
 			h("div", { width: 64, height: 3, backgroundColor: FLAME, margin: "26px 0" }),
-			text(formatPreviewTime(preview, true), { size: 28, weight: 700, lineHeight: 1.25 })
+			// A long time breaks before "to" instead of wherever it runs out of room.
+			...timeLines(formatPreviewTime(preview, true)).map((line) =>
+				text(line, { size: 28, weight: 700, lineHeight: 1.25 })
+			)
 		]
 	);
 }
