@@ -4,13 +4,14 @@ import { z } from "zod";
 import { setError, superValidate, fail } from "sveltekit-superforms";
 import { zod4 as zod } from "sveltekit-superforms/adapters";
 import { getSafeRedirectTarget } from "$lib/safeRedirect";
+import { linkPreviewFor } from "$lib/server/linkPreviews";
 
 const LoginPageSchema = z.object({
 	email: z.string().trim().toLowerCase().email(),
 	password: z.string().min(6).max(64)
 });
 
-export const load = async ({ locals, request, url }) => {
+export const load = async ({ locals, request, url, fetch }) => {
 	// Server API:
 	const form = await superValidate(zod(LoginPageSchema));
 
@@ -19,7 +20,12 @@ export const load = async ({ locals, request, url }) => {
 		throw redirect(303, "/");
 	}
 
-	return { form }; // Unless you throw, always return { form } in load and form actions.
+	// A shared link to a signed-in page (an event, the tutoring form, a check-in
+	// QR code...) lands here for anyone signed out, including the bots that
+	// build link previews, so describe where the link was going.
+	const linkPreview = await linkPreviewFor(url.searchParams.get("redirectTo"), url.origin, fetch);
+
+	return { form, linkPreview }; // Unless you throw, always return { form } in load and form actions.
 };
 
 export const actions: Actions = {

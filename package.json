@@ -45,11 +45,15 @@
 	"dependencies": {
 		"@fontsource-variable/figtree": "^5.3.0",
 		"@fontsource-variable/fraunces": "^5.3.0",
+		"@fontsource/figtree": "5.2.9",
+		"@fontsource/fraunces": "5.2.9",
+		"@resvg/resvg-js": "2.6.2",
 		"@sveltejs/adapter-vercel": "^6.3.4",
 		"@vercel/analytics": "^2.0.1",
 		"@vercel/speed-insights": "^2.0.0",
 		"date-fns": "^4.4.0",
 		"pocketbase": "^0.27.0",
-		"qrcode": "^1.5.4"
+		"qrcode": "^1.5.4",
+		"satori": "0.33.5"
 	}
 }

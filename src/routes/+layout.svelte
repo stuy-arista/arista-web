@@ -133,7 +133,12 @@
 	<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141c35" />
 </svelte:head>
 
-<Seo url={page.url} status={page.status} signedIn={!!data.user} />
+<Seo
+	url={page.url}
+	status={page.status}
+	signedIn={!!data.user}
+	linkPreview={page.data.linkPreview ?? null}
+/>
 
 <Modal />
 <LiveUpdates />

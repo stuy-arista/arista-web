@@ -1,8 +1,29 @@
 export const SITE_ORIGIN = "https://www.stuyarista.org";
 export const SITE_NAME = "Stuyvesant ARISTA";
-export const SOCIAL_IMAGE = `${SITE_ORIGIN}/images/members-2026.jpg`;
+export const SOCIAL_IMAGE = `${SITE_ORIGIN}/images/social-card-2026.jpg`;
 
 type PageMetadata = { title: string; description: string };
+
+// Each page's own link preview card (drawn by /og/page/[slug].png). Pages not
+// listed use the general seal card.
+const pageCards: Record<string, string> = {
+	"/about": "about",
+	"/resources": "resources",
+	"/faq": "faq",
+	"/annual-report": "annual-report",
+	"/install": "install",
+	"/register": "register"
+};
+const sectionCards: Record<string, string> = { cram: "cram", freshman: "freshman" };
+
+// Public pages that aren't search results but still get shared.
+const sharedPages: Record<string, PageMetadata> = {
+	"/register": {
+		title: "Create an account | Stuyvesant ARISTA",
+		description:
+			"Create a free Stuyvesant ARISTA account to request a peer tutor, apply to join, and keep track of everything in one place."
+	}
+};
 
 export const publicPages: Record<string, PageMetadata> = {
 	"/": {
@@ -70,7 +91,8 @@ export function getPageSeo(url: URL, status = 200, signedIn = false) {
 	const resource =
 		section && Object.hasOwn(resourceSections, section) ? resourceSections[section] : null;
 	const metadata = resource ??
-		publicPages[url.pathname] ?? {
+		publicPages[url.pathname] ??
+		(Object.hasOwn(sharedPages, url.pathname) ? sharedPages[url.pathname] : null) ?? {
 			title: SITE_NAME,
 			description: "Sign in to Stuyvesant ARISTA to manage tutoring, events, and your account."
 		};
@@ -79,8 +101,20 @@ export function getPageSeo(url: URL, status = 200, signedIn = false) {
 		SITE_ORIGIN
 	);
 	if (resource && section) canonical.searchParams.set("section", section);
+	const card =
+		status === 200
+			? section && Object.hasOwn(sectionCards, section)
+				? sectionCards[section]
+				: Object.hasOwn(pageCards, url.pathname)
+					? pageCards[url.pathname]
+					: null
+			: null;
 	return {
 		...metadata,
+		image: card ? `${SITE_ORIGIN}/og/page/${card}.png` : SOCIAL_IMAGE,
+		imageAlt: card
+			? `${metadata.title.split(" | ")[0]}, Stuyvesant ARISTA.`
+			: "The ARISTA seal and name: Stuyvesant High School Honor Society.",
 		canonical: canonical.href,
 		indexable: isIndexablePage(url, status, signedIn)
 	};
