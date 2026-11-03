@@ -73,7 +73,7 @@
 				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
 			</button>
 			<div class="slideshow__dots" role="group" aria-label="Choose a photo">
-				{#each slides as slide, dot}
+				{#each slides as _, dot}
 					<button
 						type="button"
 						class:active={dot === index}

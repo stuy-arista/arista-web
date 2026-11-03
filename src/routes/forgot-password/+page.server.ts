@@ -28,7 +28,6 @@ export const actions: Actions = {
 
 		// Rate limiting check
 		const ip = request.headers.get("x-forwarded-for") || "unknown";
-		const now = Date.now();
 		const userRequests = rateLimit.get(ip) || 0;
 
 		if (userRequests >= MAX_REQUESTS) {

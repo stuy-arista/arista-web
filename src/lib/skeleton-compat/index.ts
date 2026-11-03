@@ -3,8 +3,6 @@ import Accordion from "./Accordion.svelte";
 import AccordionItem from "./AccordionItem.svelte";
 import AppShell from "./AppShell.svelte";
 import Modal from "./Modal.svelte";
-import RadioGroup from "./RadioGroup.svelte";
-import RadioItem from "./RadioItem.svelte";
 import SlideToggle from "./SlideToggle.svelte";
 
 export interface ModalSettings {
@@ -17,11 +15,6 @@ export interface ModalSettings {
 	danger?: boolean;
 	response?: (result: boolean) => void;
 	[key: string]: unknown;
-}
-
-export function initializeStores() {
-	if (typeof document === "undefined") return;
-	document.body.dataset.theme ||= "wintry";
 }
 
 /** The confirmation currently on screen, rendered by Modal.svelte in the root layout. */
@@ -49,4 +42,4 @@ export function confirmDialog(settings: Omit<ModalSettings, "response">) {
 	);
 }
 
-export { Accordion, AccordionItem, AppShell, Modal, RadioGroup, RadioItem, SlideToggle };
+export { Accordion, AccordionItem, AppShell, Modal, SlideToggle };

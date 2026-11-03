@@ -14,7 +14,7 @@
 
 	const { delayed, enhance } = untrack(() => form);
 
-	const { value, errors, constraints } = formFieldProxy(
+	const { value } = formFieldProxy(
 		untrack(() => form),
 		"csv_string"
 	) satisfies FormFieldProxy<string>;

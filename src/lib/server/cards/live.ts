@@ -1,4 +1,5 @@
 import type { MeetingPreview, UpcomingEvent } from "../linkPreviews";
+import { inNewYork, timeRange } from "../previewUtils";
 import {
 	clamp,
 	CREAM,
@@ -18,8 +19,6 @@ import {
 
 // Cards drawn from live data: the next few events, and a meeting's check-in.
 
-const inNewYork = (options: Intl.DateTimeFormatOptions) =>
-	new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", ...options });
 const monthFormat = inNewYork({ month: "short" });
 const dayFormat = inNewYork({ day: "numeric" });
 const weekdayFormat = inNewYork({ weekday: "long" });
@@ -130,13 +129,7 @@ export function meetingCard(meeting: MeetingPreview) {
 			),
 			text(label, { size: 27, weight: 700, color: "#fff" })
 		]);
-	const opens = timeFormat.format(meeting.opensAt);
-	const closes = timeFormat.format(meeting.closesAt);
-	// "4:00 to 4:30 PM" when both share AM or PM.
-	const window =
-		opens.slice(-2) === closes.slice(-2)
-			? `${opens.slice(0, -3)} to ${closes}`
-			: `${opens} to ${closes}`;
+	const hours = timeRange(meeting.opensAt, meeting.closesAt, true);
 	return h(
 		"div",
 		{
@@ -166,7 +159,7 @@ export function meetingCard(meeting: MeetingPreview) {
 					masthead("Meeting check-in"),
 					h("div", { flexDirection: "column", gap: 16 }, [
 						clamp(meeting.name, 2, { size: 80, serif: true, color: "#fff", lineHeight: 1.04 }),
-						text(`${longDayFormat.format(meeting.opensAt)}, ${window}`, { size: 29, color: MIST })
+						text(`${longDayFormat.format(meeting.opensAt)}, ${hours}`, { size: 29, color: MIST })
 					]),
 					h("div", { gap: 30 }, [
 						step(1, "Sign in"),

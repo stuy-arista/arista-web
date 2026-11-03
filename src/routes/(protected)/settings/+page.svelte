@@ -52,7 +52,7 @@
 	}
 	let { data }: Props = $props();
 	const formObj = superForm(untrack(() => data.form));
-	const { form, errors } = formObj;
+	const { errors } = formObj;
 	type ThemePreference = "system" | "light" | "dark";
 	let themeForm: HTMLFormElement | null = $state(null);
 	let themePreference = $state<ThemePreference>("system");

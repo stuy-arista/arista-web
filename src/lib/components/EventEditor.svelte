@@ -13,7 +13,7 @@
 	}
 
 	let { promptText = "Create", formObj }: Props = $props();
-	const { form, errors, constraints, message } = untrack(() => formObj);
+	const { form, errors, constraints } = untrack(() => formObj);
 
 	function toDateTimeLocalValue(value: Date | string | null | undefined) {
 		if (!value) return "";

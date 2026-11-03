@@ -5,7 +5,6 @@
 	import Seo from "$lib/components/Seo.svelte";
 	import "../app.css";
 	import { AppShell, Modal } from "$lib/skeleton-compat";
-	import { initializeStores } from "$lib/skeleton-compat";
 	import { currentUser } from "$lib/pocketbase";
 	import {
 		accountThemeStorageKey,
@@ -45,8 +44,6 @@
 		document.documentElement.classList.toggle("dark", isDark);
 		document.documentElement.style.colorScheme = isDark ? "dark" : "light";
 	}
-
-	initializeStores();
 
 	// The page scrolls inside AppShell's scroll container, so the browser's own
 	// scroll handling never touches it. Remember the position for each history

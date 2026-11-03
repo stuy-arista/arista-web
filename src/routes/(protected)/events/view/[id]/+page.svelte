@@ -7,7 +7,6 @@
 	import type { PageData } from "./$types";
 	import { enhance, deserialize, applyAction } from "$app/forms";
 	import { isOnCommittee } from "$lib/isOnCommittee";
-	import { currentUser } from "$lib/pocketbase";
 	import { calculateEventCredits } from "$lib/calculateCredits";
 	import { format } from "date-fns";
 	import { invalidateAll } from "$app/navigation";

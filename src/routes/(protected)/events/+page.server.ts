@@ -1,7 +1,7 @@
 import { error, fail } from "@sveltejs/kit";
 import type { Actions } from "./$types";
 import { superValidate } from "sveltekit-superforms";
-import { EventSchema, type RecievedEvent } from "$lib/db_types";
+import { EventSchema } from "$lib/db_types";
 import handleError from "$lib/handleError";
 import { isOnCommittee } from "$lib/isOnCommittee";
 import { zod4 as zod } from "sveltekit-superforms/adapters";
@@ -27,11 +27,9 @@ export const actions: Actions = {
 		try {
 			form.data.start_time.setSeconds(0); // remove any issues with seconds causing credits to be inaccurate
 			form.data.end_time.setSeconds(0); // remove any issues with seconds causing credits to be inaccurate
-			const createdEvent = structuredClone(
-				await locals.pb
-					.collection("events")
-					.create({ ...form.data, signed_up: [locals.user.id], event_owner: locals.user.id })
-			) as RecievedEvent;
+			await locals.pb
+				.collection("events")
+				.create({ ...form.data, signed_up: [locals.user.id], event_owner: locals.user.id });
 		} catch (error: unknown) {
 			console.error(error);
 			return handleError(error, form);

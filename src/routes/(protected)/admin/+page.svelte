@@ -2,7 +2,6 @@
 	import { officerName } from "$lib/displayName";
 	import calculateTotalStrikeWeight from "$lib/calculateTotalStrikeWeight";
 	import AdminSubnav from "$lib/components/AdminSubnav.svelte";
-	import type { RecievedUser } from "$lib/db_types";
 	import type { PageData } from "./$types";
 	import { goto } from "$app/navigation";
 	import { page } from "$app/state";

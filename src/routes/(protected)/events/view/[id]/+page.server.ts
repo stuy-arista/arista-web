@@ -56,9 +56,8 @@ export const load = (async ({ params, locals }) => {
 		end_time: new Date(serialized_event.end_time)
 	};
 
-	let is_current_user_signed_up = serialized_event_with_time.signed_up.includes(
-		locals?.user?.id as any as string
-	);
+	const is_current_user_signed_up =
+		!!locals.user && serialized_event_with_time.signed_up.includes(locals.user.id);
 
 	// this will only return something for event committee members
 	const filterstr = `event="${event_id}"`;
@@ -260,9 +259,10 @@ export const actions = {
 		try {
 			form.data.end_time.setSeconds(0); // remove any issues with seconds causing credits to be inaccurate
 			form.data.start_time.setSeconds(0); // remove any issues with seconds causing credits to be inaccurate
-			const updated_event = await locals.pb.collection("events").update(event_id, form.data);
+			await locals.pb.collection("events").update(event_id, form.data);
 
-			return { update_form: form }; // i am struggling to have superform update, so use:enhance is turned off in the form
+			// The edit form submits without use:enhance, so the page reloads with the saved values.
+			return { update_form: form };
 		} catch (error: unknown) {
 			console.error(error);
 			return handleError(error, form);

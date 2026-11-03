@@ -1,5 +1,5 @@
-import { env } from "$env/dynamic/public";
 import { eventIdFromPath, eventPreviewMeta, fetchEventPreview } from "./eventPreview";
+import { getPreviewJson, inNewYork, pbDate, previewVersion } from "./previewUtils";
 
 // Link previews for pages that need a sign-in. Preview bots aren't signed in,
 // so they land on /login?redirectTo=... and these describe where the link was
@@ -16,28 +16,16 @@ export type LinkPreview = {
 export type UpcomingEvent = { name: string; start: Date; end: Date; place: string };
 export type MeetingPreview = { name: string; opensAt: Date; closesAt: Date };
 
-const pbUrl = () => env.PUBLIC_POCKETBASE_URL || "https://db.stuyarista.org";
-const toDate = (value: string) => new Date(value.replace(" ", "T"));
-
-async function getJson(path: string, fetcher: typeof fetch) {
-	try {
-		const response = await fetcher(`${pbUrl()}${path}`, { signal: AbortSignal.timeout(4000) });
-		return response.ok ? await response.json() : null;
-	} catch {
-		return null;
-	}
-}
-
 /** The next three events that haven't ended. */
 export async function fetchUpcoming(
 	fetcher: typeof fetch = fetch
 ): Promise<UpcomingEvent[] | null> {
-	const raw = await getJson("/api/arista/upcoming-preview", fetcher);
+	const raw = await getPreviewJson("/api/arista/upcoming-preview", fetcher);
 	if (!Array.isArray(raw)) return null;
 	return raw.map((event) => ({
 		name: event.name,
-		start: toDate(event.start_time),
-		end: toDate(event.end_time),
+		start: pbDate(event.start_time),
+		end: pbDate(event.end_time),
 		place: event.place
 	}));
 }
@@ -48,31 +36,16 @@ export async function fetchMeeting(
 	fetcher: typeof fetch = fetch
 ): Promise<MeetingPreview | null> {
 	if (!/^[A-Za-z0-9_-]{4,32}$/.test(code)) return null;
-	const raw = await getJson(`/api/arista/meeting-preview/${encodeURIComponent(code)}`, fetcher);
+	const raw = await getPreviewJson(
+		`/api/arista/meeting-preview/${encodeURIComponent(code)}`,
+		fetcher
+	);
 	if (!raw) return null;
-	return { name: raw.name, opensAt: toDate(raw.opensAt), closesAt: toDate(raw.closesAt) };
+	return { name: raw.name, opensAt: pbDate(raw.opensAt), closesAt: pbDate(raw.closesAt) };
 }
 
-const shortDay = new Intl.DateTimeFormat("en-US", {
-	timeZone: "America/New_York",
-	weekday: "short",
-	month: "short",
-	day: "numeric"
-});
-const longDay = new Intl.DateTimeFormat("en-US", {
-	timeZone: "America/New_York",
-	weekday: "long",
-	month: "long",
-	day: "numeric"
-});
-
-// A short hash, so an image URL changes when what it shows changes.
-function version(parts: unknown[]) {
-	const text = parts.join("|");
-	let hash = 0;
-	for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) | 0;
-	return (hash >>> 0).toString(36);
-}
+const shortDay = inNewYork({ weekday: "short", month: "short", day: "numeric" });
+const longDay = inNewYork({ weekday: "long", month: "long", day: "numeric" });
 
 const staticCard = (
 	origin: string,
@@ -114,7 +87,7 @@ export async function linkPreviewFor(
 			description: upcoming.length
 				? `Coming up: ${listed}. ARISTA members sign in to sign up.`
 				: "Volunteer events for ARISTA members. New events are posted here first.",
-			image: `${origin}/og/events.png?v=${version(upcoming.map((event) => [event.name, event.start.getTime(), event.place]))}`,
+			image: `${origin}/og/events.png?v=${previewVersion(upcoming.map((event) => [event.name, event.start.getTime(), event.place]))}`,
 			imageAlt: upcoming.length ? `Upcoming ARISTA events: ${listed}.` : "Upcoming ARISTA events.",
 			url: `${origin}/events`
 		};
@@ -128,7 +101,7 @@ export async function linkPreviewFor(
 		return {
 			title: `Check in: ${meeting.name} | Stuyvesant ARISTA`,
 			description: `Check in to ${meeting.name} on ${day}. Sign in, take a quick selfie, and you're marked present.`,
-			image: `${origin}/og/meeting/${attendance[1]}.png?v=${version([meeting.name, meeting.opensAt.getTime()])}`,
+			image: `${origin}/og/meeting/${attendance[1]}.png?v=${previewVersion([meeting.name, meeting.opensAt.getTime()])}`,
 			imageAlt: `Check in to ${meeting.name}, ${day}.`,
 			url: `${origin}${path}`
 		};

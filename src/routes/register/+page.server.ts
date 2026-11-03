@@ -92,6 +92,5 @@ export const actions: Actions = {
 		}
 		const redirectTo = url.searchParams.get("redirectTo");
 		throw redirect(303, getSafeRedirectTarget(redirectTo, url.origin));
-		// return { form };
 	}
 };

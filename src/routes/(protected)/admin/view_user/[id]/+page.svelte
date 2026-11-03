@@ -9,7 +9,6 @@
 	import StrikesDisplay from "$lib/components/StrikesDisplay.svelte";
 	import SemesterCreditPanel from "$lib/components/SemesterCreditPanel.svelte";
 
-	let user_id = page.params.id;
 	interface Props {
 		data: PageData;
 	}

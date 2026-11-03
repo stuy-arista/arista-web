@@ -208,7 +208,7 @@ export const actions = {
 			error(401, `User with id of "${user_id}" does not exist.`);
 		}
 
-		const created_strike = await locals.pb.collection("strikes").create(
+		await locals.pb.collection("strikes").create(
 			{
 				strikedUser: user.id,
 				reason: form.data.reason,
