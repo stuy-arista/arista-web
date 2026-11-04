@@ -168,7 +168,19 @@
 		untrack(() => data.requestTutoringForm),
 		{ resetForm: true }
 	);
-	const { errors: requestTutoringFormErrors } = requestTutoringFormObj;
+	const { errors: requestTutoringFormErrors, form: requestTutoringForm } = requestTutoringFormObj;
+
+	// Words that don't tell a tutor what to prepare. A topic made only of these
+	// ("Unit 3", "test review", "everything") gets a nudge to name the skills.
+	const VAGUE_TOPIC_WORDS = new Set(
+		"unit units chapter chapters ch lesson lessons topic topics module modules review reviews test tests quiz quizzes exam exams prep studying study for the my a an and of on in to with help pls please everything all above most general stuff things like class homework hw math science english history spanish chem bio physics cs idk".split(
+			" "
+		)
+	);
+	const topicIsVague = $derived.by(() => {
+		const words = ($requestTutoringForm.topic ?? "").toLowerCase().match(/[a-z]+/g) ?? [];
+		return words.length > 0 && words.every((word) => VAGUE_TOPIC_WORDS.has(word));
+	});
 	const finishTutoringFormObj = superForm(
 		untrack(() => data.finishTutoringSessionForm),
 		{ resetForm: true }
@@ -929,7 +941,11 @@
 							form={requestTutoringFormObj}
 							field="topic"
 							label="What topic(s) do you need help on?"
-							placeholder="Unit 7 review, vocab practice, Racket homework"
+							hintIsNudge={topicIsVague}
+							hint={topicIsVague
+								? 'Which skills are in it? Name them, like "solving systems by substitution" or "writing a DBQ thesis".'
+								: "Name the exact skills, not just the unit."}
+							placeholder="Factoring quadratics, preterite vs. imperfect, DBQ thesis writing"
 						/>
 					</div>
 				</div>

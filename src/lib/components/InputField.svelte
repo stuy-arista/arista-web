@@ -13,6 +13,8 @@
 		field: FormPathLeaves<T>;
 		label?: string;
 		hint?: string;
+		/** Show the hint as a nudge to change what's typed, not just help text. */
+		hintIsNudge?: boolean;
 		placeholder?: string;
 		type?: string;
 		inputmode?: "email" | "search" | "text" | "none" | "tel" | "url" | "numeric" | "decimal";
@@ -24,6 +26,7 @@
 		field,
 		label = "",
 		hint = "",
+		hintIsNudge = false,
 		placeholder = "",
 		type = "text",
 		inputmode = "text",
@@ -64,7 +67,12 @@
 	{#if $errors}
 		<span class="field-error" id="{id}-error">{$errors}</span>
 	{:else if hint}
-		<span class="field-hint" id="{id}-hint">{hint}</span>
+		<span
+			class="field-hint"
+			class:input-field__nudge={hintIsNudge}
+			id="{id}-hint"
+			aria-live="polite">{hint}</span
+		>
 	{/if}
 </div>
 
@@ -84,5 +92,9 @@
 	}
 	.field-error {
 		margin-top: 0;
+	}
+	.input-field__nudge {
+		color: var(--warning);
+		font-weight: 500;
 	}
 </style>
