@@ -934,7 +934,7 @@
 						field="general_time"
 						label="When are you free?"
 						hint="List every time that works. Weekends and Zoom are fine."
-						placeholder="Mon and Wed after school, Fri period 6, Sat on Zoom"
+						placeholder="Mon, Wed after school, Fri period 6, Sat on Zoom"
 					/>
 					<div class="ask__wide">
 						<InputField
