@@ -95,7 +95,7 @@ export const TutoringRequestSchema = z.object({
 	subject: z.string().min(2).max(64),
 	class: z.string().min(2).max(64),
 	teacher: z.string().min(2).max(64),
-	topic: z.string().min(2).max(64),
+	topic: z.string().min(2).max(150),
 	tutee: z.string().min(2).max(64),
 	general_time: z.string().min(2).max(512),
 	isClaimed: z.boolean().default(false),
